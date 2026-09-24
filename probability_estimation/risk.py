@@ -9,11 +9,11 @@ def choose_dice_num(army_size, attacker=True, top_attack_rolls=3, top_defend_rol
     if attacker:
         if army_size >= 4:
             return top_attack_rolls
-        return max(army_size - 1, top_attack_rolls)
+        return min(army_size - 1, top_attack_rolls)
     else:
         if army_size >= 3:
             return top_defend_rolls
-        return max(army_size, top_defend_rolls)
+        return min(army_size, top_defend_rolls)
 
 
 def roll_num_dice(num_dice) -> list[int]:
@@ -129,7 +129,7 @@ def simulate_battles(
 
 
 def part_a():
-    battles = 10000
+    battles = 100000
     results_normal = []
     results_limited = []
 
@@ -211,7 +211,7 @@ def part_b():
 
     results = []
     army_defend = 5
-    battles = 1000
+    battles = 10000
 
     results.append([0, 5, 0, 1, 0])
     results.append([0, 5, 1, 1, 0])
