@@ -260,7 +260,70 @@ def part_b():
     plt.show()
 
 
+def part_c():
+    results = []
+    remaining_defenders = []
+    remaining_attackers = []
+    army_defend = 10
+    army_attack = 10
+    battles = 1000000
+
+    for _ in range(battles):
+        battle_results = simulate_battle(army_defend, army_attack, stages=1000)
+
+        remaining_defenders.append(army_defend - battle_results[0])
+        remaining_attackers.append(army_attack - battle_results[1])
+
+        # results.append(
+        #     [
+        #         len(results) + 3,
+        #         army_defend,
+        #         army_attack,
+        #         simulation_avgs[2],
+        #         simulation_avgs[3],
+        #     ]
+        # )
+
+    for remaining in range(0, 11):
+        num_defenders_remaining = remaining_defenders.count(remaining)
+        num_attackers_remaining = remaining_attackers.count(remaining)
+
+        avg_num_defenders_remaining = num_defenders_remaining / battles
+        avg_num_attackers_remaining = num_attackers_remaining / battles
+
+        # print(f"Number of battles that ended with {remaining} defenders: {num_defenders_remaining}")
+
+        # print(f"Number of battles that ended with {remaining} attackers: {num_attackers_remaining}")
+
+        results.append(
+            [
+                remaining,
+                num_defenders_remaining,
+                num_attackers_remaining,
+                avg_num_defenders_remaining,
+                avg_num_attackers_remaining,
+            ]
+        )
+
+    print(f"Number of armies remaining after a 10 V 10 simulated {battles:,.0f} times")
+
+    print(
+        tabulate(
+            results,
+            headers=[
+                "Num Remaining",
+                "Remaining Defending Armies",
+                "Remaining Attacking Armies",
+                "Avg Defend Remaining",
+                "Avg Attack Remaining",
+            ],
+            tablefmt="pipe",
+        )
+    )
+
+
 # part_a()
 
+# part_b()
 
-part_b()
+part_c()
