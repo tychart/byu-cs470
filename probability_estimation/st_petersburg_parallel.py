@@ -10,19 +10,21 @@ import time
 import numpy as np
 from numba import njit, prange
 
-# GAMES = 1_000_000_0000
-GAMES = 1_000_000_000_000
+GAMES = 1_000_000_000
+# GAMES = 1_000_000_000_000
 BLOCKS = 512  # chunks; one per parallel task, splitty across cores
 
 
-@njit(parallel=True, cache=True)
+@njit(parallel=True)
 def simulate(blocks, per_block):
     totals = np.zeros(blocks, dtype=np.int64)
+    money = np.zeros(blocks, dtype=np.float64)
     maxes = np.zeros(blocks, dtype=np.int64)
     mins = np.full(blocks, np.int64(1 << 30), dtype=np.int64)
 
     for b in prange(blocks):  # <- the only parallel bit
         total = 0
+        payout = 0.0
         hi = 0
         lo = 1 << 30
         for _ in range(per_block):
@@ -30,13 +32,15 @@ def simulate(blocks, per_block):
             while np.random.random() > 0.5:  # heads, keep flipping
                 heads += 1
             total += heads
+            payout += 2.0**heads
             hi = max(hi, heads)
             lo = min(lo, heads)
         totals[b] = total
+        money[b] = payout
         maxes[b] = hi
         mins[b] = lo
 
-    return totals.sum(), maxes.max(), mins.min()
+    return totals.sum(), money.sum(), maxes.max(), mins.min()
 
 
 if __name__ == "__main__":
@@ -44,13 +48,14 @@ if __name__ == "__main__":
     simulate(2, 10)  # warm up / compile once, outside the timer
 
     start = time.perf_counter()
-    total, most, fewest = simulate(BLOCKS, per_block)
+    total, money_sum, most, fewest = simulate(BLOCKS, per_block)
     elapsed = time.perf_counter() - start
 
     n = BLOCKS * per_block
 
     print(f"Total games: {GAMES:,.0f}")
-    print(f"Max flips until tails: {most} = ${ (2**most):,.2f}")
-    print(f"Min flips until tails: {fewest} = ${ (2**fewest):,.2f}")
-    print(f"Average flips until tails: {(total / n):.4f} = ${ (2**(total / n)):,.2f}")
+    print(f"Max flips until tails: {most} = ${(2**most):,.2f}")
+    print(f"Min flips until tails: {fewest} = ${(2**fewest):,.2f}")
+    print(f"Average flips until tails: {(total / n):.4f}")
+    print(f"Avg money made: {money_sum / n:,.2f}")
     print(f"({n / elapsed:,.0f} games/s in {elapsed:.2f}s)")
