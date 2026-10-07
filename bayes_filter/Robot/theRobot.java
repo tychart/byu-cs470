@@ -217,20 +217,38 @@ class mySmartMap extends JComponent implements KeyListener {
         char key = e.getKeyChar();
         //System.out.println(key);
 
+        // switch (key) {
+        //     case 'i':
+        //         currentKey = NORTH;
+        //         break;
+        //     case ',':
+        //         currentKey = SOUTH;
+        //         break;
+        //     case 'j':
+        //         currentKey = WEST;
+        //         break;
+        //     case 'l':
+        //         currentKey = EAST;
+        //         break;
+        //     case 'k':
+        //         currentKey = STAY;
+        //         break;
+        // }
+
         switch (key) {
-            case 'i':
+            case 'k':
                 currentKey = NORTH;
                 break;
-            case ',':
+            case 'j':
                 currentKey = SOUTH;
                 break;
-            case 'j':
+            case 'h':
                 currentKey = WEST;
                 break;
             case 'l':
                 currentKey = EAST;
                 break;
-            case 'k':
+            case ';':
                 currentKey = STAY;
                 break;
         }
@@ -405,7 +423,9 @@ public class theRobot extends JFrame {
     void printProbs() {
         for (int y = 0; y < mundo.height; y++) {
             for (int x = 0; x < mundo.width; x++) {
-                System.out.print(probs[x][y] + " ");
+                // System.out.print(probs[x][y] + " ");
+                System.out.format("%.4f", probs[x][y]);
+                System.out.print(" ");
             }
             System.out.println();
         }
