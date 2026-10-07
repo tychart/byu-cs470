@@ -431,20 +431,50 @@ public class theRobot extends JFrame {
         }
     }
 
-    double[] calcPrevProb(int prevX, int prevY, int currX, int currY, int attemptedAction) {
-        double[] outArr = new double[5];
+    double calcIntendedDir(int attemptedAction, int currDir) {
 
         // For every direction it sets the probility to pretty low except the intended direction
-        for (int i = 0; i < 5; i++) {
-            if (i == attemptedAction) {
-                outArr[i] = moveProb;
-            } else {
-                outArr[i] = (1 - moveProb) / 4;
-            }
+
+        if (currDir == attemptedAction) {
+            return moveProb;
+        } else {
+            return (1 - moveProb) / 4;
         }
+    }
 
-        return outArr;
+    double[] calcIntendedDir(int prevX, int prevY, int attemptedAction) {
 
+        double[] singleMoveProbs = new double[5];
+        int currX = prevX;
+        int currY = prevY;
+
+        for (int i = 0; i < 5; i++) {
+
+            double probIntended = calcIntendedDir(attemptedAction, i);
+
+            switch (attemptedAction) {
+                case NORTH:
+                    if (mundo.grid[prevX][prevY - 1] == 1) { // Is legal move, not a wall
+                        singleMoveProbs[i] = probIntended;
+                    }
+                case SOUTH:
+                    if (mundo.grid[prevX][prevY + 1] == 1) { // Is legal move, not a wall
+                        singleMoveProbs[i] = probIntended;
+                    }
+                case EAST:
+                    if (mundo.grid[prevX + 1][prevY] == 1) { // Is legal move, not a wall
+                        singleMoveProbs[i] = probIntended;
+                    }
+                case WEST:
+                    if (mundo.grid[prevX - 1][prevY] == 1) { // Is legal move, not a wall
+                        singleMoveProbs[i] = probIntended;
+                    }
+                case STAY:
+                    singleMoveProbs[i] = probIntended;
+            }
+
+        }
+        return singleMoveProbs;
     }
 
     // TODO (FILTERING ASSIGNMENT): update the probabilities of where the AI thinks it is based on the action selected and the new sonar readings
@@ -465,21 +495,21 @@ public class theRobot extends JFrame {
 
                 // Doing somethign like this: probs[x][y] = Prob(x | action, probs[x][y]) * probs[x][y];
 
-                // if attempting to move north
-                double probNorth = moveProb;
-                double probSouth = (1 - moveProb) / 4;
-                double probEast = (1 - moveProb) / 4;
-                double probWest= (1 - moveProb) / 4;
-                double probStay = (1 - moveProb) / 4;
+                // // if attempting to move north
+                // double probNorth = moveProb;
+                // double probSouth = (1 - moveProb) / 4;
+                // double probEast = (1 - moveProb) / 4;
+                // double probWest= (1 - moveProb) / 4;
+                // double probStay = (1 - moveProb) / 4;
 
-                // if attempting to move south
-                double probNorth = (1 - moveProb) / 4;
-                double probSouth = moveProb;
-                double probEast = (1 - moveProb) / 4;
-                double probWest= (1 - moveProb) / 4;
-                double probStay = (1 - moveProb) / 4;
+                // // if attempting to move south
+                // double probNorth = (1 - moveProb) / 4;
+                // double probSouth = moveProb;
+                // double probEast = (1 - moveProb) / 4;
+                // double probWest= (1 - moveProb) / 4;
+                // double probStay = (1 - moveProb) / 4;
 
-                calcPrevProb(x, y, x, y, action)
+                calcIntendedDir(x, y, action);
 
 
                 // Do somthing like this afterwards: probs[x][y] = Prob(z | x) * probs[x][y];
