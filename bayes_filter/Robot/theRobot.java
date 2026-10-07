@@ -402,6 +402,15 @@ public class theRobot extends JFrame {
         myMaps.updateProbs(probs);
     }
 
+    void printProbs() {
+        for (int y = 0; y < mundo.height; y++) {
+            for (int x = 0; x < mundo.width; x++) {
+                System.out.print(probs[x][y] + " ");
+            }
+            System.out.println();
+        }
+    }
+
     // TODO (FILTERING ASSIGNMENT): update the probabilities of where the AI thinks it is based on the action selected and the new sonar readings
     //       To do this, you should update the 2D-array "probs"
     // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
@@ -410,7 +419,10 @@ public class theRobot extends JFrame {
         // TODO (FILTERING ASSIGNMENT): add your filtering code here
 
         System.out.println("Sonars: " + sonars);
-        System.out.println("Probs: " + probs);
+        System.out.println("Probs: ");
+
+        printProbs();
+
 
 
 

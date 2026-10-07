@@ -14,14 +14,15 @@ public class World {
 
     World(String worldFile) {
         try {
-            FileReader fileReader = new FileReader("../Mundos/" + worldFile);
+            // FileReader fileReader = new FileReader("../Mundos/" + worldFile);
+            FileReader fileReader = new FileReader("Mundos/" + worldFile);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
-            
+
             width = Integer.parseInt(bufferedReader.readLine());
             height = Integer.parseInt(bufferedReader.readLine());
-            
+
             //System.out.println("Width: " + width + "; Height = " + height);
-            
+
             grid = new int[width][height];
             for (int y = 0; y < height; y++) {
                 String line = bufferedReader.readLine();
@@ -36,7 +37,7 @@ public class World {
                         grid[x][y] = 3;
                 }
             }
-            
+
             bufferedReader.close();
             fileReader.close();
         }
