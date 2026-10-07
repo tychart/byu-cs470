@@ -431,6 +431,22 @@ public class theRobot extends JFrame {
         }
     }
 
+    double[] calcPrevProb(int prevX, int prevY, int currX, int currY, int attemptedAction) {
+        double[] outArr = new double[5];
+
+        // For every direction it sets the probility to pretty low except the intended direction
+        for (int i = 0; i < 5; i++) {
+            if (i == attemptedAction) {
+                outArr[i] = moveProb;
+            } else {
+                outArr[i] = (1 - moveProb) / 4;
+            }
+        }
+
+        return outArr;
+
+    }
+
     // TODO (FILTERING ASSIGNMENT): update the probabilities of where the AI thinks it is based on the action selected and the new sonar readings
     //       To do this, you should update the 2D-array "probs"
     // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
@@ -443,6 +459,35 @@ public class theRobot extends JFrame {
 
         printProbs();
 
+        for (int y = 0; y < mundo.height; y++) {
+            for (int x = 0; x < mundo.width; x++) {
+                // TODO (FILTERING ASSIGNMENT): update probs[x][y] based on the action and the sonar readings
+
+                // Doing somethign like this: probs[x][y] = Prob(x | action, probs[x][y]) * probs[x][y];
+
+                // if attempting to move north
+                double probNorth = moveProb;
+                double probSouth = (1 - moveProb) / 4;
+                double probEast = (1 - moveProb) / 4;
+                double probWest= (1 - moveProb) / 4;
+                double probStay = (1 - moveProb) / 4;
+
+                // if attempting to move south
+                double probNorth = (1 - moveProb) / 4;
+                double probSouth = moveProb;
+                double probEast = (1 - moveProb) / 4;
+                double probWest= (1 - moveProb) / 4;
+                double probStay = (1 - moveProb) / 4;
+
+                calcPrevProb(x, y, x, y, action)
+
+
+                // Do somthing like this afterwards: probs[x][y] = Prob(z | x) * probs[x][y];
+
+
+
+            }
+        }
 
 
 
