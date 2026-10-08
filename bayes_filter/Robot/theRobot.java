@@ -479,13 +479,13 @@ public class theRobot extends JFrame {
     }
   }
 
-  double[][] doScatterTransitionForPos(
+  void doScatterTransitionForPos(
     double[][] newProbs,
     int currX,
     int currY,
     int attemptedAction
   ) {
-    double[] singleMoveProbs = new double[5];
+    // double[] singleMoveProbs = new double[5];
     // int currX = prevX;
     // int currY = prevY;
 
@@ -496,34 +496,39 @@ public class theRobot extends JFrame {
       switch (i) {
         case NORTH:
           // Is legal move, not a wall
-          if (mundo.grid[currX][currY - 1] != 1) {
-            newProbs[currX][currY] += probIntended * probs[currX][currY];
+          if (currY - 1 >= 0 && mundo.grid[currX][currY - 1] != 1) {
+            newProbs[currX][currY - 1] += probIntended * probs[currX][currY];
           } else {
-            singleMoveProbs[i] = 0;
+            newProbs[currX][currY] += probIntended * probs[currX][currY];
           }
           break;
         case SOUTH:
           // Is legal move, not a wall
-          if (mundo.grid[currX][currY + 1] != 1) {
-            newProbs[currX][currY] += probIntended * probs[currX][currY];
+          if (
+            currY + 1 < mundo.grid[0].length &&
+            mundo.grid[currX][currY + 1] != 1
+          ) {
+            newProbs[currX][currY + 1] += probIntended * probs[currX][currY];
           } else {
-            singleMoveProbs[i] = 0;
+            newProbs[currX][currY] += probIntended * probs[currX][currY];
           }
           break;
         case EAST:
           // Is legal move, not a wall
-          if (mundo.grid[currX + 1][currY] != 1) {
-            newProbs[currX][currY] += probIntended * probs[currX][currY];
+          if (
+            currX + 1 < mundo.grid.length && mundo.grid[currX + 1][currY] != 1
+          ) {
+            newProbs[currX + 1][currY] += probIntended * probs[currX][currY];
           } else {
-            singleMoveProbs[i] = 0;
+            newProbs[currX][currY] += probIntended * probs[currX][currY];
           }
           break;
         case WEST:
           // Is legal move, not a wall
-          if (mundo.grid[currX - 1][currY] != 1) {
-            newProbs[currX][currY] += probIntended * probs[currX][currY];
+          if (currX - 1 >= 0 && mundo.grid[currX - 1][currY] != 1) {
+            newProbs[currX - 1][currY] += probIntended * probs[currX][currY];
           } else {
-            singleMoveProbs[i] = 0;
+            newProbs[currX][currY] += probIntended * probs[currX][currY];
           }
           break;
         case STAY:
@@ -536,8 +541,6 @@ public class theRobot extends JFrame {
       //   newProbs[currX][currY] *= probIntended;
       // }
     }
-
-    return newProbs;
   }
 
   // TODO (FILTERING ASSIGNMENT): update the probabilities of where the AI thinks it is based on the action selected and the new sonar readings
@@ -574,7 +577,7 @@ public class theRobot extends JFrame {
         // double probWest= (1 - moveProb) / 4;
         // double probStay = (1 - moveProb) / 4;
 
-        newProbs = doScatterTransitionForPos(newProbs, x, y, action);
+        doScatterTransitionForPos(newProbs, x, y, action);
 
         // newProbs[x][y] = doTransitionForPrevPos(x, y, action) * probs[x][y];
 
