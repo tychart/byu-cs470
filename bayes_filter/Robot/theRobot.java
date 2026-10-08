@@ -479,40 +479,63 @@ public class theRobot extends JFrame {
     }
   }
 
-  double[] calcIntendedDir(int prevX, int prevY, int attemptedAction) {
+  double doTransitionForPrevPos(int prevX, int prevY, int attemptedAction) {
     double[] singleMoveProbs = new double[5];
-    int currX = prevX;
-    int currY = prevY;
+    // int currX = prevX;
+    // int currY = prevY;
 
     for (int i = 0; i < 5; i++) {
       double probIntended = calcIntendedDir(attemptedAction, i);
 
+      // Check to make sure move is legal, if so, then use the probIntended, otherwise set to 0
       switch (attemptedAction) {
         case NORTH:
-          if (mundo.grid[prevX][prevY - 1] == 1) {
+          if (mundo.grid[prevX][prevY - 1] == 0) {
             // Is legal move, not a wall
             singleMoveProbs[i] = probIntended;
+          } else {
+            singleMoveProbs[i] = 0;
           }
+          break;
         case SOUTH:
-          if (mundo.grid[prevX][prevY + 1] == 1) {
+          if (mundo.grid[prevX][prevY + 1] == 0) {
             // Is legal move, not a wall
             singleMoveProbs[i] = probIntended;
+          } else {
+            singleMoveProbs[i] = 0;
           }
+          break;
         case EAST:
-          if (mundo.grid[prevX + 1][prevY] == 1) {
+          if (mundo.grid[prevX + 1][prevY] == 0) {
             // Is legal move, not a wall
             singleMoveProbs[i] = probIntended;
+          } else {
+            singleMoveProbs[i] = 0;
           }
+          break;
         case WEST:
-          if (mundo.grid[prevX - 1][prevY] == 1) {
+          if (mundo.grid[prevX - 1][prevY] == 0) {
             // Is legal move, not a wall
             singleMoveProbs[i] = probIntended;
+          } else {
+            singleMoveProbs[i] = 0;
           }
+          break;
         case STAY:
           singleMoveProbs[i] = probIntended;
+          break;
       }
     }
-    return singleMoveProbs;
+
+    // probibility to move into this square given the previous position and the attempted action
+
+    double squareProb = 0;
+
+    for (int i = 0; i < singleMoveProbs.length; i++) {
+      squareProb += singleMoveProbs[i];
+    }
+
+    return squareProb;
   }
 
   // TODO (FILTERING ASSIGNMENT): update the probabilities of where the AI thinks it is based on the action selected and the new sonar readings
@@ -549,7 +572,7 @@ public class theRobot extends JFrame {
         // double probWest= (1 - moveProb) / 4;
         // double probStay = (1 - moveProb) / 4;
 
-        calcIntendedDir(x, y, action);
+        newProbs[x][y] = doTransitionForPrevPos(x, y, action) * probs[x][y];
 
         // Do somthing like this afterwards: probs[x][y] = Prob(z | x) * probs[x][y];
       }
