@@ -8,5 +8,8 @@
     }
   },
   "ruff.nativeServer": "on",
-  "files.trimTrailingWhitespace": true
+  "files.trimTrailingWhitespace": true,
+  "editor.defaultFormatter": "RudraPatel.prettier-plugin-java-vscode",
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2
 }
