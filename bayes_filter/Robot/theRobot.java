@@ -479,10 +479,8 @@ public class theRobot extends JFrame {
     }
   }
 
-  double doTransitionForPrevPos(
+  double[][] doScatterTransitionForPos(
     double[][] newProbs,
-    int prevX,
-    int prevY,
     int currX,
     int currY,
     int attemptedAction
@@ -495,59 +493,51 @@ public class theRobot extends JFrame {
       double probIntended = calcIntendedDir(attemptedAction, i);
 
       // // Check to make sure move is legal, if so, then use the probIntended, otherwise set to 0
-      // switch (attemptedAction) {
-      //   case NORTH:
-      //     // Is legal move, not a wall
-      //     if (mundo.grid[prevX][prevY] != 1) {
-      //       newProbs[currX][currY] *= probIntended;
-      //     } else {
-      //       singleMoveProbs[i] = 0;
-      //     }
-      //     break;
-      //   case SOUTH:
-      //     // Is legal move, not a wall
-      //     if (mundo.grid[prevX][prevY] != 1) {
-      //       newProbs[currX][currY] *= probIntended;
-      //     } else {
-      //       singleMoveProbs[i] = 0;
-      //     }
-      //     break;
-      //   case EAST:
-      //     // Is legal move, not a wall
-      //     if (mundo.grid[prevX][prevY] != 1) {
-      //       newProbs[currX][currY] *= probIntended;
-      //     } else {
-      //       singleMoveProbs[i] = 0;
-      //     }
-      //     break;
-      //   case WEST:
-      //     // Is legal move, not a wall
-      //     if (mundo.grid[prevX][prevY] != 1) {
-      //       newProbs[currX][currY] *= probIntended;
-      //     } else {
-      //       singleMoveProbs[i] = 0;
-      //     }
-      //     break;
-      //   case STAY:
-      //     newProbs[currX][currY] *= probIntended;
-      //     break;
-      // }
-
-      // Check to make sure move is legal, if so, then use the probIntended, otherwise set to 0
-      if (mundo.grid[prevX][prevY] != 1) {
-        newProbs[currX][currY] *= probIntended;
+      switch (i) {
+        case NORTH:
+          // Is legal move, not a wall
+          if (mundo.grid[currX][currY - 1] != 1) {
+            newProbs[currX][currY] += probIntended * probs[currX][currY];
+          } else {
+            singleMoveProbs[i] = 0;
+          }
+          break;
+        case SOUTH:
+          // Is legal move, not a wall
+          if (mundo.grid[currX][currY + 1] != 1) {
+            newProbs[currX][currY] += probIntended * probs[currX][currY];
+          } else {
+            singleMoveProbs[i] = 0;
+          }
+          break;
+        case EAST:
+          // Is legal move, not a wall
+          if (mundo.grid[currX + 1][currY] != 1) {
+            newProbs[currX][currY] += probIntended * probs[currX][currY];
+          } else {
+            singleMoveProbs[i] = 0;
+          }
+          break;
+        case WEST:
+          // Is legal move, not a wall
+          if (mundo.grid[currX - 1][currY] != 1) {
+            newProbs[currX][currY] += probIntended * probs[currX][currY];
+          } else {
+            singleMoveProbs[i] = 0;
+          }
+          break;
+        case STAY:
+          newProbs[currX][currY] += probIntended * probs[currX][currY];
+          break;
       }
+
+      // // Check to make sure move is legal, if so, then use the probIntended, otherwise set to 0
+      // if (mundo.grid[prevX][prevY] != 1) {
+      //   newProbs[currX][currY] *= probIntended;
+      // }
     }
 
-    // probibility to move into this square given the previous position and the attempted action
-
-    double squareProb = 0;
-
-    for (int i = 0; i < singleMoveProbs.length; i++) {
-      squareProb += singleMoveProbs[i];
-    }
-
-    return squareProb;
+    return newProbs;
   }
 
   // TODO (FILTERING ASSIGNMENT): update the probabilities of where the AI thinks it is based on the action selected and the new sonar readings
@@ -584,14 +574,21 @@ public class theRobot extends JFrame {
         // double probWest= (1 - moveProb) / 4;
         // double probStay = (1 - moveProb) / 4;
 
-        doTransitionForPrevPos(newProbs, x - 1, y, x, y, action);
-        doTransitionForPrevPos(newProbs, x + 1, y, x, y, action);
-        doTransitionForPrevPos(newProbs, x, y + 1, x, y, action);
-        doTransitionForPrevPos(newProbs, x, y - 1, x, y, action);
+        newProbs = doScatterTransitionForPos(newProbs, x, y, action);
 
         // newProbs[x][y] = doTransitionForPrevPos(x, y, action) * probs[x][y];
 
         // Do somthing like this afterwards: probs[x][y] = Prob(z | x) * probs[x][y];
+      }
+    }
+
+    // Source - https://stackoverflow.com/a/5617045
+    // Posted by Louis Rhys, modified by community. See post 'Timeline' for change history
+    // Retrieved 2026-10-08, License - CC BY-SA 3.0
+    // Deep copy a 2d array
+    for (int i = 0; i < newProbs.length; i++) {
+      for (int j = 0; j < newProbs[i].length; j++) {
+        probs[i][j] = newProbs[i][j];
       }
     }
 
