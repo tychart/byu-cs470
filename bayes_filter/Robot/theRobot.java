@@ -550,10 +550,43 @@ public class theRobot extends JFrame {
     String sonars
   ) {
     boolean sensorNorth = sonars.charAt(0) == '1';
-    boolean actualNorth = mundo.grid[currX][currY] == 1;
+    boolean actualNorth = mundo.grid[currX][currY - 1] == 1;
 
     // If sensor and groud truth line up
     if (sensorNorth == actualNorth) {
+      newProbs[currX][currY] *= sensorAccuracy;
+    } else {
+      newProbs[currX][currY] *= 1 - sensorAccuracy;
+    }
+
+    boolean sensorSouth = sonars.charAt(1) == '1';
+    boolean actualSouth = mundo.grid[currX][currY + 1] == 1;
+
+    // If sensor and groud truth line up
+    if (sensorSouth == actualSouth) {
+      newProbs[currX][currY] *= sensorAccuracy;
+    } else {
+      newProbs[currX][currY] *= 1 - sensorAccuracy;
+    }
+
+    boolean sensorEast = sonars.charAt(2) == '1';
+    boolean actualEast = mundo.grid[currX + 1][currY] == 1;
+
+    // If sensor and groud truth line up
+    if (sensorEast == actualEast) {
+      newProbs[currX][currY] *= sensorAccuracy;
+    } else {
+      newProbs[currX][currY] *= 1 - sensorAccuracy;
+    }
+
+    boolean sensorWest = sonars.charAt(3) == '1';
+    boolean actualWest = mundo.grid[currX - 1][currY] == 1;
+
+    // If sensor and groud truth line up
+    if (sensorWest == actualWest) {
+      newProbs[currX][currY] *= sensorAccuracy;
+    } else {
+      newProbs[currX][currY] *= 1 - sensorAccuracy;
     }
   }
 
