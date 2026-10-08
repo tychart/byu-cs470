@@ -549,45 +549,75 @@ public class theRobot extends JFrame {
     int currY,
     String sonars
   ) {
-    boolean sensorNorth = sonars.charAt(0) == '1';
-    boolean actualNorth = mundo.grid[currX][currY - 1] == 1;
+    for (int i = 0; i < 4; i++) {
+      int newX = currX;
+      int newY = currY;
+      switch (i) {
+        case NORTH:
+          newY--;
+          break;
+        case SOUTH:
+          newY++;
+          break;
+        case EAST:
+          newX++;
+          break;
+        case WEST:
+          newX--;
+          break;
+      }
 
-    // If sensor and groud truth line up
-    if (sensorNorth == actualNorth) {
-      newProbs[currX][currY] *= sensorAccuracy;
-    } else {
-      newProbs[currX][currY] *= 1 - sensorAccuracy;
+      // If the position is out of bounds, we can skip this direction
+      if (newX < 0 || newX >= mundo.width || newY < 0 || newY >= mundo.height) {
+        continue;
+      }
+
+      if ((int) sonars.charAt(0) == mundo.grid[newX][newY]) {
+        newProbs[currX][currY] *= sensorAccuracy;
+      } else {
+        newProbs[currX][currY] *= 1 - sensorAccuracy;
+      }
     }
 
-    boolean sensorSouth = sonars.charAt(1) == '1';
-    boolean actualSouth = mundo.grid[currX][currY + 1] == 1;
+    // boolean sensorNorth = sonars.charAt(0) == '1';
+    // boolean actualNorth = mundo.grid[currX][currY - 1] == 1;
 
-    // If sensor and groud truth line up
-    if (sensorSouth == actualSouth) {
-      newProbs[currX][currY] *= sensorAccuracy;
-    } else {
-      newProbs[currX][currY] *= 1 - sensorAccuracy;
-    }
+    // // If sensor and groud truth line up
+    // if (sensorNorth == actualNorth) {
+    //   newProbs[currX][currY] *= sensorAccuracy;
+    // } else {
+    //   newProbs[currX][currY] *= 1 - sensorAccuracy;
+    // }
 
-    boolean sensorEast = sonars.charAt(2) == '1';
-    boolean actualEast = mundo.grid[currX + 1][currY] == 1;
+    // boolean sensorSouth = sonars.charAt(1) == '1';
+    // boolean actualSouth = mundo.grid[currX][currY + 1] == 1;
 
-    // If sensor and groud truth line up
-    if (sensorEast == actualEast) {
-      newProbs[currX][currY] *= sensorAccuracy;
-    } else {
-      newProbs[currX][currY] *= 1 - sensorAccuracy;
-    }
+    // // If sensor and groud truth line up
+    // if (sensorSouth == actualSouth) {
+    //   newProbs[currX][currY] *= sensorAccuracy;
+    // } else {
+    //   newProbs[currX][currY] *= 1 - sensorAccuracy;
+    // }
 
-    boolean sensorWest = sonars.charAt(3) == '1';
-    boolean actualWest = mundo.grid[currX - 1][currY] == 1;
+    // boolean sensorEast = sonars.charAt(2) == '1';
+    // boolean actualEast = mundo.grid[currX + 1][currY] == 1;
 
-    // If sensor and groud truth line up
-    if (sensorWest == actualWest) {
-      newProbs[currX][currY] *= sensorAccuracy;
-    } else {
-      newProbs[currX][currY] *= 1 - sensorAccuracy;
-    }
+    // // If sensor and groud truth line up
+    // if (sensorEast == actualEast) {
+    //   newProbs[currX][currY] *= sensorAccuracy;
+    // } else {
+    //   newProbs[currX][currY] *= 1 - sensorAccuracy;
+    // }
+
+    // boolean sensorWest = sonars.charAt(3) == '1';
+    // boolean actualWest = mundo.grid[currX - 1][currY] == 1;
+
+    // // If sensor and groud truth line up
+    // if (sensorWest == actualWest) {
+    //   newProbs[currX][currY] *= sensorAccuracy;
+    // } else {
+    //   newProbs[currX][currY] *= 1 - sensorAccuracy;
+    // }
   }
 
   // TODO (FILTERING ASSIGNMENT): update the probabilities of where the AI thinks it is based on the action selected and the new sonar readings
@@ -614,6 +644,21 @@ public class theRobot extends JFrame {
     for (int y = 0; y < mundo.height; y++) {
       for (int x = 0; x < mundo.width; x++) {
         doSensorForPos(newProbs, x, y, sonars);
+      }
+    }
+
+    // Add all of the probabilities together
+    double sum = 0.0;
+    for (int y = 0; y < mundo.height; y++) {
+      for (int x = 0; x < mundo.width; x++) {
+        sum += newProbs[x][y];
+      }
+    }
+
+    // Normalize the probabilities
+    for (int y = 0; y < mundo.height; y++) {
+      for (int x = 0; x < mundo.width; x++) {
+        newProbs[x][y] /= sum;
       }
     }
 
