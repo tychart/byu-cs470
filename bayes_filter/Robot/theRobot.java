@@ -479,7 +479,14 @@ public class theRobot extends JFrame {
     }
   }
 
-  double doTransitionForPrevPos(int prevX, int prevY, int attemptedAction) {
+  double doTransitionForPrevPos(
+    double[][] newProbs,
+    int prevX,
+    int prevY,
+    int currX,
+    int currY,
+    int attemptedAction
+  ) {
     double[] singleMoveProbs = new double[5];
     // int currX = prevX;
     // int currY = prevY;
@@ -487,43 +494,48 @@ public class theRobot extends JFrame {
     for (int i = 0; i < 5; i++) {
       double probIntended = calcIntendedDir(attemptedAction, i);
 
+      // // Check to make sure move is legal, if so, then use the probIntended, otherwise set to 0
+      // switch (attemptedAction) {
+      //   case NORTH:
+      //     // Is legal move, not a wall
+      //     if (mundo.grid[prevX][prevY] != 1) {
+      //       newProbs[currX][currY] *= probIntended;
+      //     } else {
+      //       singleMoveProbs[i] = 0;
+      //     }
+      //     break;
+      //   case SOUTH:
+      //     // Is legal move, not a wall
+      //     if (mundo.grid[prevX][prevY] != 1) {
+      //       newProbs[currX][currY] *= probIntended;
+      //     } else {
+      //       singleMoveProbs[i] = 0;
+      //     }
+      //     break;
+      //   case EAST:
+      //     // Is legal move, not a wall
+      //     if (mundo.grid[prevX][prevY] != 1) {
+      //       newProbs[currX][currY] *= probIntended;
+      //     } else {
+      //       singleMoveProbs[i] = 0;
+      //     }
+      //     break;
+      //   case WEST:
+      //     // Is legal move, not a wall
+      //     if (mundo.grid[prevX][prevY] != 1) {
+      //       newProbs[currX][currY] *= probIntended;
+      //     } else {
+      //       singleMoveProbs[i] = 0;
+      //     }
+      //     break;
+      //   case STAY:
+      //     newProbs[currX][currY] *= probIntended;
+      //     break;
+      // }
+
       // Check to make sure move is legal, if so, then use the probIntended, otherwise set to 0
-      switch (attemptedAction) {
-        case NORTH:
-          if (mundo.grid[prevX][prevY - 1] == 0) {
-            // Is legal move, not a wall
-            singleMoveProbs[i] = probIntended;
-          } else {
-            singleMoveProbs[i] = 0;
-          }
-          break;
-        case SOUTH:
-          if (mundo.grid[prevX][prevY + 1] == 0) {
-            // Is legal move, not a wall
-            singleMoveProbs[i] = probIntended;
-          } else {
-            singleMoveProbs[i] = 0;
-          }
-          break;
-        case EAST:
-          if (mundo.grid[prevX + 1][prevY] == 0) {
-            // Is legal move, not a wall
-            singleMoveProbs[i] = probIntended;
-          } else {
-            singleMoveProbs[i] = 0;
-          }
-          break;
-        case WEST:
-          if (mundo.grid[prevX - 1][prevY] == 0) {
-            // Is legal move, not a wall
-            singleMoveProbs[i] = probIntended;
-          } else {
-            singleMoveProbs[i] = 0;
-          }
-          break;
-        case STAY:
-          singleMoveProbs[i] = probIntended;
-          break;
+      if (mundo.grid[prevX][prevY] != 1) {
+        newProbs[currX][currY] *= probIntended;
       }
     }
 
@@ -572,7 +584,12 @@ public class theRobot extends JFrame {
         // double probWest= (1 - moveProb) / 4;
         // double probStay = (1 - moveProb) / 4;
 
-        newProbs[x][y] = doTransitionForPrevPos(x, y, action) * probs[x][y];
+        doTransitionForPrevPos(newProbs, x - 1, y, x, y, action);
+        doTransitionForPrevPos(newProbs, x + 1, y, x, y, action);
+        doTransitionForPrevPos(newProbs, x, y + 1, x, y, action);
+        doTransitionForPrevPos(newProbs, x, y - 1, x, y, action);
+
+        // newProbs[x][y] = doTransitionForPrevPos(x, y, action) * probs[x][y];
 
         // Do somthing like this afterwards: probs[x][y] = Prob(z | x) * probs[x][y];
       }
