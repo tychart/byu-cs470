@@ -572,7 +572,10 @@ public class theRobot extends JFrame {
         continue;
       }
 
-      if ((int) sonars.charAt(0) == mundo.grid[newX][newY]) {
+      boolean sensorReading = sonars.charAt(i) == '1';
+      boolean actualReading = mundo.grid[newX][newY] == 1;
+
+      if (sensorReading == actualReading) {
         newProbs[currX][currY] *= sensorAccuracy;
       } else {
         newProbs[currX][currY] *= 1 - sensorAccuracy;
@@ -644,6 +647,11 @@ public class theRobot extends JFrame {
     for (int y = 0; y < mundo.height; y++) {
       for (int x = 0; x < mundo.width; x++) {
         doSensorForPos(newProbs, x, y, sonars);
+
+        // If goal or stairway, then set to 0 because the game is still going
+        if (mundo.grid[x][y] == 2 || mundo.grid[x][y] == 3) {
+          newProbs[x][y] = 0;
+        }
       }
     }
 
