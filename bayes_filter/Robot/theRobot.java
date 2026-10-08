@@ -632,10 +632,10 @@ public class theRobot extends JFrame {
 
     double[][] newProbs = new double[mundo.width][mundo.height];
 
-    System.out.println("Sonars: " + sonars);
-    System.out.println("Probs: ");
+    // System.out.println("Sonars: " + sonars);
+    // System.out.println("Probs: ");
 
-    printProbs();
+    // printProbs();
 
     for (int y = 0; y < mundo.height; y++) {
       for (int x = 0; x < mundo.width; x++) {
