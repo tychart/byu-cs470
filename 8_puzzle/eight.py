@@ -21,7 +21,8 @@ class Puzzle:
 
     def __init__(self, arrangement):
         """
-        The state (and arrangement passed in) is a list of length 9, that stores which tile is in each place
+        The state (and arrangement passed in) is a list of length 9, that stores
+        which tile is in each place.
         In a solved puzzle, each place number holds the tile of the same number
         i.e. solution is state = [0,1,2,3,4,5,6,7,8]
         """
@@ -184,7 +185,8 @@ class SearchNode:
 
 def heuristic(node, options):
     """
-    This is the function that is called from the SearchNode class to get the heuristic value for a node
+    This is the function that is called from the SearchNode
+    class to get the heuristic value for a node
     """
     if options.function == "top":
         return tiles_out_of_place(node.puzzle)
@@ -209,7 +211,8 @@ def tiles_out_of_place(puzzle):
     for i in range(1, len(puzzle.state)):
         # The tile in place i ( puzzle.state[i] ) should be tile i.
         # If it isn't increment out of place counter
-        # (To compare tile (string) with place (int), we must first convert from string to int as such:
+        # (To compare tile (string) with place (int), we must first convert from
+        # string to int as such:
         #  int(puzzle.state[i])
 
         if puzzle.state[i] != i:
@@ -302,7 +305,8 @@ def run_iterative_search(start_node):
         # No solution was found at this depth limit, so increment our depth-limit
         depth_limit += 1
 
-    # No solution was found at any depth-limit, so return None,None (Which signifies no solution found)
+    # No solution was found at any depth-limit, so
+    # return None,None (Which signifies no solution found)
     return None, None
 
 
@@ -354,11 +358,13 @@ def run_dfs(node, depth_limit, visited):
                 # It was! Return this solution path length to whoever called us
                 return path_length
 
-            # Remove this state from the visited list.  We only check for duplicates along current search path
+            # Remove this state from the visited list.
+            # We only check for duplicates along current search path
             del visited[node.puzzle.id()]
 
         # That move didn't lead to a solution, so lets try the next one
-        # First, though, we need to undo the move (to return puzzle to state before we tried that move)
+        # First, though, we need to undo the move (to return puzzle
+        # to state before we tried that move)
         node.puzzle.undo_move(m)
         # Remove that last move we tried from the path
         node.path = node.path[0:-1]
@@ -444,7 +450,10 @@ def getOptions(args=sys.argv[1:]):
     parser.add_argument(
         "-f",
         "--function",
-        help="Heuristic function used: Options: top (tiles out of place), torc (tiles out of row/column), or md (manhattan distance)",
+        help=(
+            "Heuristic function used: Options: top (tiles out of place), torc "
+            "(tiles out of row/column), or md (manhattan distance)"
+        ),
         default="top",
     )
     parser.add_argument(
@@ -537,5 +546,6 @@ if __name__ == "__main__":
         print("Average solution length: ", path_length / num_solved)
     else:
         print(
-            "A puzzle was not solved.  This means you haven't correctly implemented something. Please double check your code and try again."
+            "A puzzle was not solved.  This means you haven't correctly ",
+            "implemented something. Please double check your code and try again.",
         )
