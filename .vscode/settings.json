@@ -2,14 +2,15 @@
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
     "editor.codeActionsOnSave": {
       "source.organizeImports.ruff": "explicit",
       "source.fixAll.ruff": "explicit"
     }
   },
-  "ruff.nativeServer": "on",
+  "python.languageServer": "None",
   "files.trimTrailingWhitespace": true,
-  "editor.defaultFormatter": "RudraPatel.prettier-plugin-java-vscode",
   "editor.formatOnSave": true,
   "editor.tabSize": 2
 }

@@ -291,9 +291,11 @@ def part_c():
         avg_num_defenders_remaining = num_defenders_remaining / battles
         avg_num_attackers_remaining = num_attackers_remaining / battles
 
-        # print(f"Number of battles that ended with {remaining} defenders: {num_defenders_remaining}")
+        # print(f"Number of battles that ended with {remaining} defenders: "
+        #       f"{num_defenders_remaining}")
 
-        # print(f"Number of battles that ended with {remaining} attackers: {num_attackers_remaining}")
+        # print(f"Number of battles that ended with {remaining} attackers: "
+        #       f"{num_attackers_remaining}")
 
         results.append(
             [

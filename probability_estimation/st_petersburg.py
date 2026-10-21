@@ -6,7 +6,7 @@ games = 1_000_000_0
 
 flips_arr = []
 
-for i in range(games):
+for _ in range(games):
     flips_until_tails = 0
     while True:
         flip = random.randint(0, 1)

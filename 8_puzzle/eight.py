@@ -27,7 +27,10 @@ class Puzzle:
         i.e. solution is state = [0,1,2,3,4,5,6,7,8]
         """
         self.state = arrangement[:]
-        self.blank = None
+        # The blank starts at 0 and is overwritten below once the 0 tile is found.
+        # (Annotated int rather than None so static type checkers can see that
+        # every later `self.blank` operation is on an int.)
+        self.blank: int = 0
 
         for i in range(len(self.state)):
             if self.state[i] == 0:
@@ -38,8 +41,8 @@ class Puzzle:
         Print a visual description of the puzzle to the output
         """
         k = 0
-        for i in range(3):
-            for j in range(3):
+        for _ in range(3):
+            for _ in range(3):
                 print("", end="")
                 print(self.state[k], end="")
                 k = k + 1
@@ -473,7 +476,8 @@ if __name__ == "__main__":
     print("Searching for solutions to puzzles from file: ", sys.argv[1])
 
     # Open puzzle file
-    pf = open(options.file)
+    with open(options.file) as pf:
+        puzzle_lines = pf.readlines()
 
     # You can modify the maximum number of puzzles to solve if you want to test on more puzzles
     max_to_solve = 40
@@ -484,7 +488,7 @@ if __name__ == "__main__":
     tot_time = 0.0
     path_length = 0
 
-    for ps in pf.readlines():
+    for ps in puzzle_lines:
         print("Searching to find solution to following puzzle:", ps)
 
         # Create puzzle from file line

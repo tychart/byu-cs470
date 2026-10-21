@@ -22,7 +22,7 @@ def simulate(blocks, per_block):
     maxes = np.zeros(blocks, dtype=np.int64)
     mins = np.full(blocks, np.int64(1 << 30), dtype=np.int64)
 
-    for b in prange(blocks):  # <- the only parallel bit
+    for b in prange(blocks):  # ty: ignore[not-iterable]  # numba prange is a range inside njit
         total = 0
         payout = 0.0
         hi = 0
