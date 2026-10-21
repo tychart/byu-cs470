@@ -16,7 +16,7 @@ BLOCKS = 512  # chunks; one per parallel task, splitty across cores
 
 
 @njit(parallel=True)
-def simulate(blocks, per_block):
+def simulate(blocks: int, per_block: int) -> tuple[np.int64, np.float64, np.int64, np.int64]:
     totals = np.zeros(blocks, dtype=np.int64)
     money = np.zeros(blocks, dtype=np.float64)
     maxes = np.zeros(blocks, dtype=np.int64)

@@ -1,11 +1,18 @@
 import random
 import sys
 from queue import Queue
+from typing import TextIO
 
 from pa1 import Puzzle, SearchNode  # ty: ignore[unresolved-import]
 
 
-def breadth_first(depth, pq, visited, of, maxnum):
+def breadth_first(
+    depth: int,
+    pq: Queue[SearchNode],
+    visited: dict[str, bool],
+    of: TextIO,
+    maxnum: int,
+) -> None:
     num_saved = 0
     while not pq.empty():
         cur_node = pq.get()

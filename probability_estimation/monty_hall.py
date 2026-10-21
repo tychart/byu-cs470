@@ -3,13 +3,13 @@ import random
 games = 100000000
 
 
-def next_door(door_num):
+def next_door(door_num: int) -> int:
     if door_num == 2:
         return 0
     return door_num + 1
 
 
-def play_game(switch):
+def play_game(switch: bool) -> int:
     doors = ["c", "g", "g"]
 
     random.shuffle(doors)

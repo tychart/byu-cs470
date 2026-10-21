@@ -5,7 +5,12 @@ import numpy as np
 from tabulate import tabulate
 
 
-def choose_dice_num(army_size, attacker=True, top_attack_rolls=3, top_defend_rolls=2) -> int:
+def choose_dice_num(
+    army_size: int,
+    attacker: bool = True,
+    top_attack_rolls: int = 3,
+    top_defend_rolls: int = 2,
+) -> int:
     if attacker:
         if army_size >= 4:
             return top_attack_rolls
@@ -16,7 +21,7 @@ def choose_dice_num(army_size, attacker=True, top_attack_rolls=3, top_defend_rol
         return min(army_size, top_defend_rolls)
 
 
-def roll_num_dice(num_dice) -> list[int]:
+def roll_num_dice(num_dice: int) -> list[int]:
     rolls = []
 
     for _ in range(num_dice):
@@ -93,8 +98,13 @@ def simulate_battle(
 
 
 def simulate_battles(
-    army_defend, army_attack, battles=1000, stages=1, top_attack_rolls=3, top_defend_rolls=2
-):
+    army_defend: int,
+    army_attack: int,
+    battles: int = 1000,
+    stages: int = 1,
+    top_attack_rolls: int = 3,
+    top_defend_rolls: int = 2,
+) -> list[float]:
 
     total_defend_losses = 0
     total_attack_losses = 0
@@ -128,7 +138,7 @@ def simulate_battles(
     return [avg_defend_losses, avg_attack_losses, avg_defend_wins, avg_attack_wins]
 
 
-def part_a():
+def part_a() -> None:
     battles = 100000
     results_normal = []
     results_limited = []
@@ -207,7 +217,7 @@ def part_a():
     )
 
 
-def part_b():
+def part_b() -> None:
 
     results = []
     army_defend = 5
@@ -260,7 +270,7 @@ def part_b():
     plt.show()
 
 
-def part_c():
+def part_c() -> None:
     results = []
     remaining_defenders = []
     remaining_attackers = []

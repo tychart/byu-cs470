@@ -13,10 +13,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = [
-    "ruff>=0.16.8",
-    "ty>=0.0.90",
-]
+dev = ["ruff>=0.16.8", "ty>=0.0.90"]
 
 [tool.ruff]
 line-length = 100
@@ -30,6 +27,7 @@ select = [
     "UP",  # pyupgrade
     "B",   # flake8-bugbear
     "SIM", # flake8-simplify
+    "ANN", # flake8-annotations (Forces type hinting everywhere)
 ]
 
 [tool.ty.environment]

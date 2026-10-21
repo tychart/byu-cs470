@@ -19,7 +19,7 @@ class Puzzle:
     This is the 8-puzzle class.  You shouldn't have to modify it at all.
     """
 
-    def __init__(self, arrangement):
+    def __init__(self, arrangement: list[int]) -> None:
         """
         The state (and arrangement passed in) is a list of length 9, that stores
         which tile is in each place.
@@ -36,7 +36,7 @@ class Puzzle:
             if self.state[i] == 0:
                 self.blank = i
 
-    def print_puzzle(self):
+    def print_puzzle(self) -> None:
         """
         Print a visual description of the puzzle to the output
         """
@@ -48,7 +48,7 @@ class Puzzle:
                 k = k + 1
             print("")
 
-    def get_moves(self):
+    def get_moves(self) -> list[str]:
         """
         The moves correspond to the motion of the tile into the blank space
         it can be U (up), D (down), R (right), or L (left)
@@ -71,7 +71,7 @@ class Puzzle:
 
         return valid_moves
 
-    def do_move(self, move):
+    def do_move(self, move: str) -> None:
         """
         Modify the state by performing the given move.
         This assumes that the move is valid
@@ -91,7 +91,7 @@ class Puzzle:
         self.state[self.blank] = temp
         self.blank = swapi
 
-    def undo_move(self, move):
+    def undo_move(self, move: str) -> None:
         """
         This modifies the state by undoing the move.  For use in recursive search
         Assumes the move was a valid one
@@ -111,7 +111,7 @@ class Puzzle:
         self.state[self.blank] = temp
         self.blank = swapi
 
-    def is_solved(self):
+    def is_solved(self) -> bool:
         """
         Returns True if the puzzle is solved, False otherwise
         """
@@ -123,10 +123,10 @@ class Puzzle:
 
         ######## TASK 1.1 END   ##########
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "".join([str(i) for i in self.state])
 
-    def id(self):
+    def id(self) -> str:
         """
         Returns the string representation of this puzzle's state.
         Useful for storing state in a dictionary
@@ -139,7 +139,7 @@ class SearchNode:
     Our search node class
     """
 
-    def __init__(self, cost, puzzle, path, options):
+    def __init__(self, cost: int, puzzle: Puzzle, path: str, options: argparse.Namespace) -> None:
         """
         Initialize all the relevant parts of the search node
         """
@@ -150,7 +150,7 @@ class SearchNode:
         self.h = heuristic(self, self.options)
         self.compute_f_value()
 
-    def compute_f_value(self):
+    def compute_f_value(self) -> None:
         """
         Compute the f-value for this node
         """
@@ -179,14 +179,14 @@ class SearchNode:
         ######## TASK 1.3 END   ##########
 
     # Comparison operator. Don't modify this or best-first search might stop working
-    def __lt__(self, other):
+    def __lt__(self, other: "SearchNode") -> bool:
         """
         Comparison operator so that nodes will be sorted in priority queue based on f-value
         """
         return self.f_value < other.f_value
 
 
-def heuristic(node, options):
+def heuristic(node: SearchNode, options: argparse.Namespace) -> int:
     """
     This is the function that is called from the SearchNode
     class to get the heuristic value for a node
@@ -202,7 +202,7 @@ def heuristic(node, options):
         sys.exit()
 
 
-def tiles_out_of_place(puzzle):
+def tiles_out_of_place(puzzle: Puzzle) -> int:
     """
     This heuristic counts the number of tiles out of place.
     """
@@ -224,7 +224,7 @@ def tiles_out_of_place(puzzle):
     return num_out_of_place
 
 
-def tiles_out_of_row_column(puzzle):
+def tiles_out_of_row_column(puzzle: Puzzle) -> int:
     """
     This heuristic counts the number of tiles that are in the wrong row,
     the number of tiles that are in the wrong column
@@ -240,7 +240,7 @@ def tiles_out_of_row_column(puzzle):
     ######## TASK 1.4.1 END   ##########
 
 
-def manhattan_distance_to_goal(puzzle):
+def manhattan_distance_to_goal(puzzle: Puzzle) -> int:
     """
     This heuristic should calculate the sum of all the manhattan distances for each tile to get to
     its goal position.  Again, make sure not to include the distance from the blank to its goal.
@@ -255,21 +255,21 @@ def manhattan_distance_to_goal(puzzle):
     ######## TASK 1.4.2 END   ##########
 
 
-def get_tile_row(tile):
+def get_tile_row(tile: int) -> int:
     """
     Return the row of the given tile location (Helper function for you to use)
     """
     return int(tile / 3)
 
 
-def get_tile_column(tile):
+def get_tile_column(tile: int) -> int:
     """
     Return the column of the given tile location (Helper function for you to use)
     """
     return tile % 3
 
 
-def run_iterative_search(start_node):
+def run_iterative_search(start_node: SearchNode) -> tuple[int, int] | tuple[None, None]:
     """
     This runs an iterative deepening search
     It caps the depth of the search at 40 (no 8-puzzles have solutions this long)
@@ -313,7 +313,7 @@ def run_iterative_search(start_node):
     return None, None
 
 
-def run_dfs(node, depth_limit, visited):
+def run_dfs(node: SearchNode, depth_limit: int, visited: dict[str, int]) -> int | None:
     """
     Recursive Depth-Limited Search:
 
@@ -379,7 +379,9 @@ def run_dfs(node, depth_limit, visited):
     return None
 
 
-def run_best_first_search(fringe, options):
+def run_best_first_search(
+    fringe: PriorityQueue[SearchNode], options: argparse.Namespace
+) -> tuple[int, int] | tuple[None, None]:
     """
     Runs an arbitrary best-first search.  To change which search is run, modify the f-value
     computation in the search nodes
@@ -435,13 +437,12 @@ def run_best_first_search(fringe, options):
                     # Add it to the FRINGE, along with its f-value (stored inside the node)
                     fringe.put(new_node)
 
-    # We didn't find a solution
-    if not done:
-        print("NO SOLUTION FOUND!")
-        return None, None
+    # We didn't find a solution (the loop only exits without a return when done is False)
+    print("NO SOLUTION FOUND!")
+    return None, None
 
 
-def getOptions(args=sys.argv[1:]):
+def getOptions(args: list[str] = sys.argv[1:]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="8-Puzzle Solver.")
     parser.add_argument("file", metavar="FILENAME", type=str, help="File of puzzles to solve")
     parser.add_argument(
@@ -522,7 +523,7 @@ if __name__ == "__main__":
             print("Search option not valid. Can be bfs or ids")
             sys.exit()
 
-        if exp is None:
+        if exp is None or pl is None:
             print("PUZZLE NOT SOLVED")
             break
 

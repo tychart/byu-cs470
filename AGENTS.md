@@ -39,7 +39,7 @@ All config lives in `pyproject.toml`; there is no `ruff.toml`, `ty.toml`,
 `pyrightconfig.json`, or `setup.cfg`.
 
 - `[tool.ruff]` — `line-length = 100`, `target-version = "py312"`.
-- `[tool.ruff.lint]` — `E`, `F`, `I`, `UP`, `B`, `SIM`.
+- `[tool.ruff.lint]` — `E`, `F`, `I`, `UP`, `B`, `SIM`, `ANN`.
 - `[tool.ty.environment]` — `python-version = "3.12"`.
 - Dev tooling lives in `[dependency-groups].dev` (`ruff`, `ty`).
 
@@ -67,7 +67,9 @@ config files.
 ## Code conventions
 
 - Every function parameter and return gets a type annotation when you write or
-  modify it; prefer `int | None` over implicit `None` sentinels.
+  modify it; prefer `int | None` over implicit `None` sentinels. `ANN` enforces
+  this for all function signatures, including `-> None` on procedures; locals
+  and module-level variables are left to ty's inference.
 - Do not initialize attributes to `None` and then do arithmetic on them without
   narrowing. `ty` reports these as `unsupported-operator`, and it is usually a
   real bug (`self.blank` in `Puzzle` is the canonical example).

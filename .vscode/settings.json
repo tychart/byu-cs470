@@ -9,8 +9,12 @@
       "source.fixAll.ruff": "explicit"
     }
   },
+  "[java]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true
+    // Optional: Add a Java formatter here if your class requires one (e.g., RedHat)
+  },
   "python.languageServer": "None",
   "files.trimTrailingWhitespace": true,
   "editor.formatOnSave": true,
-  "editor.tabSize": 2
 }
