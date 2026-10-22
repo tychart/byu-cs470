@@ -84,7 +84,7 @@ for s, t, h in combos:
                 value(SOLVED, out, ".0f"),
                 value(NODES, out, ".2f"),
                 value(TIME, out, ".4f"),
-                value(TOTAL, out, ".2f"),
+                value(TOTAL, out, ".4f"),
                 value(LENGTH, out, ".2f"),
             ]
         )

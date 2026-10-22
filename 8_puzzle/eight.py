@@ -533,6 +533,11 @@ def run_ida_dfs(
     for m in moves:
         # Execute the move/action
         node.puzzle.do_move(m)
+        # The heuristic is a function of the state, so recompute it for the state we just
+        # moved into.  (SearchNode.__init__ filled it in for the start state only, and
+        # without this refresh f = cost + h(start), which grows by exactly 1 per move and
+        # turns IDA* back into plain iterative deepening.)
+        node.h = heuristic(node, node.options)
         node.compute_f_value()
 
         # Add this move to the node's path
@@ -769,7 +774,7 @@ if __name__ == "__main__":
     # Print out statistics about this batch
     if num_solved > 0:
         print("Solved", num_solved, "puzzles from file: ", sys.argv[1])
-        print(f"Total time taken: {tot_time:.2f} seconds")
+        print(f"Total time taken: {tot_time:.4f} seconds")
         print("Average nodes expanded: ", float(exp_num) / float(num_solved))
         print(f"Average search time: {(tot_time / num_solved):,.4f} seconds")
         print("Average solution length: ", path_length / num_solved)
