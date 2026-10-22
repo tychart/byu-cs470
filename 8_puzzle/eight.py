@@ -119,7 +119,7 @@ class Puzzle:
 
         # Add code to determine whether this puzzle is solved
 
-        return False  # Change this!
+        return self.state == [0, 1, 2, 3, 4, 5, 6, 7, 8]
 
         ######## TASK 1.1 END   ##########
 
@@ -162,15 +162,15 @@ class SearchNode:
 
         if self.options.type == "g":
             # greedy search algorithm
-            self.f_value = 0  # Change this to implement greedy!
+            self.f_value = self.h  # Change this to implement greedy!
 
         elif self.options.type == "u":
             # uniform cost search algorithm
-            self.f_value = 0  # Change this to implement uniform cost search!
+            self.f_value = self.cost  # Change this to implement uniform cost search!
 
         elif self.options.type == "a":
             # A* search algorithm
-            self.f_value = 0  # Change this to implement A*!
+            self.f_value = self.cost + self.h  # Change this to implement A*!
 
         else:
             print("Invalid search type (-t) selected: Valid options are g, u, and a")
@@ -235,7 +235,18 @@ def tiles_out_of_row_column(puzzle: Puzzle) -> int:
 
     # YOUR TASK 1.4.1 CODE HERE
 
-    return 0  # change this
+    wrong_pos_count = 0
+
+    for tile in range(1, len(puzzle.state)):
+        pos = puzzle.state.index(tile)
+
+        if get_tile_row(pos) != get_tile_row(tile):
+            wrong_pos_count += 1
+
+        if get_tile_column(pos) != get_tile_column(tile):
+            wrong_pos_count += 1
+
+    return wrong_pos_count
 
     ######## TASK 1.4.1 END   ##########
 
@@ -546,8 +557,9 @@ if __name__ == "__main__":
     # Print out statistics about this batch
     if num_solved > 0:
         print("Solved", num_solved, "puzzles from file: ", sys.argv[1])
+        print(f"Total time taken: {tot_time:.2f} seconds")
         print("Average nodes expanded: ", float(exp_num) / float(num_solved))
-        print("Average search time: ", tot_time / num_solved)
+        print(f"Average search time: {(tot_time / num_solved):,.4f} seconds")
         print("Average solution length: ", path_length / num_solved)
     else:
         print(
