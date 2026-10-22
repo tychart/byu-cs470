@@ -398,6 +398,168 @@ def run_dfs(node: SearchNode, depth_limit: int, visited: dict[str, int]) -> int 
     return None
 
 
+def run_ida_search(start_node: SearchNode) -> tuple[int, int] | tuple[None, None]:
+    """
+    This runs an iterative deepening A* (IDA*) search -- Part 2 of the assignment.
+
+    IDA* is the same depth-first skeleton as run_iterative_search/run_dfs, except that
+    the cutoff is no longer the path length.  Each iteration searches depth-first and
+    prunes every node whose f-value exceeds the current cost bound; if the iteration
+    fails it raises the bound to the smallest f-value that overshot it and tries again.
+
+    IDA* always evaluates nodes as f = g + h = cost + heuristic, so it uses the A*
+    f-value regardless of the -t flag.  (Pass -t a to make that explicit, or note in
+    the write-up that -t is ignored when -s ida is used.)
+
+    Returns (nodes_expanded, path_length) on success or (None, None) on failure, so the
+    stats-collection code in __main__ works unchanged.
+    """
+    ######## PART 2 (IDA*) BEGIN ##########
+
+    # YOUR IDA* OUTER LOOP HERE
+    #
+    # Suggested shape (mirror run_iterative_search):
+    #   - start the bound at the start node's f-value under A* (g + h), i.e. h(start)
+    #   - each iteration: reset the per-path visited structure and expansion counter,
+    #     call run_ida_dfs(start_node, bound, visited), then add visited["N"] to a
+    #     running total_expanded
+    #   - if the DFS reported a solution, print the stats and return
+    #     (total_expanded, path_length)
+    #   - otherwise set bound = visited["next"] and iterate again
+
+    # Our initial bound
+    bound = 1
+
+    # Maximum bound
+    max_depth_limit = 40
+
+    # Keep track of the total number of nodes we expand
+    total_expanded = 0
+
+    # Keep trying until our depth limit for the F value hits 40
+    while bound < max_depth_limit:
+        # Store visited nodes along the current search path
+        visited = dict()
+        visited["N"] = 0
+
+        # Mark the initial state as visited
+        visited[start_node.puzzle.id()] = True
+
+        # Run depth-limited search starting at initial node (which points to initial state)
+        path_length = run_ida_dfs(start_node, bound, visited)
+
+        # See how many nodes we expanded on this iteration and add it to our total
+        total_expanded += visited["N"]
+
+        # Check to see if a solution was found
+        if path_length is not None:
+            # It was! Print out information and return the search stats
+            print("Expanded ", total_expanded, "nodes")
+            print("IDA* Found solution at depth", bound)
+            return total_expanded, path_length
+
+        # No solution was found at this depth limit, so increment our depth-limit
+        bound += 1
+
+    # No solution was found at any depth-limit, so
+    # return None,None (Which signifies no solution found)
+    return None, None
+
+    ######## PART 2 (IDA*) END   ##########
+
+
+def run_ida_dfs(node: SearchNode, bound: int, visited: dict[str, int]) -> int | None:
+    """
+    Recursive depth-first search for IDA*:
+
+    Check node to see if it is goal, if it is, print solution and return path length.
+    If not, prune the node when its f-value exceeds the current cost bound, recording
+    that f-value as the next bound to try.  Otherwise recurse on all of its children.
+
+    `visited` is the same mutable-dict trick used by run_dfs (state id -> True marks the
+    current search path, "N" counts node expansions).  It also carries the next bound to
+    try under the "next" key, which is how that value gets back to run_ida_search
+    without fighting `nonlocal`.
+
+    Returns the solution path length if a solution was found, or None if this bound was
+    exhausted without finding one.
+    """
+    ######## PART 2 (IDA*) BEGIN ##########
+
+    # YOUR IDA* RECURSIVE DFS HERE
+    #
+    # Suggested shape (mirror run_dfs):
+    #   - visited["N"] += 1
+    #   - return len(node.path) if node.puzzle.is_solved()
+    #   - prune (and record the overshoot in visited["next"]) when
+    #     node.f_value > bound
+    #   - for each move: do_move, recompute the f-value, extend path/cost, skip states
+    #     already on the search path, recurse, then undo_move / restore path / restore
+    #     cost on backtrack (and drop the state from visited)
+
+    visited["N"] = visited["N"] + 1  # Increment our node expansion counter
+
+    # Check to see if this is a goal node
+    if node.puzzle.is_solved():
+        # It is! Print out solution and return solution length
+        print("Iterative Deepening A* SOLVED THE PUZZLE! SOLUTION = ", node.path)
+        return len(node.path)
+
+    # Check to see if the bound has been reached (f value is too high)
+    if len(node.path) >= bound:
+        # It has. Return None, signifying that no path was found
+        return None
+
+    # Generate successors and recurse on them
+
+    # Get the list of moves we can try from this node's state
+    moves = node.puzzle.get_moves()
+
+    # moves.sort(by a* algorithm?)
+
+    # For each possible move
+    for m in moves:
+        # Execute the move/action
+        node.puzzle.do_move(m)
+        node.compute_f_value()
+
+        # Add this move to the node's path
+        node.path = node.path + m
+        # Add 1 to node's cost
+        node.cost = node.cost + 1
+        # Check to see if we have already visited this node
+        if node.puzzle.id() not in visited:
+            # We haven't. Now we will, so add it to visited
+            visited[node.puzzle.id()] = True
+
+            # Recurse on this new state
+            path_length = run_ida_dfs(node, bound, visited)
+
+            # Check to see if a solution was found down this path (return value of None means no)
+            if path_length is not None:
+                # It was! Return this solution path length to whoever called us
+                return path_length
+
+            # Remove this state from the visited list.
+            # We only check for duplicates along current search path
+            del visited[node.puzzle.id()]
+
+        # That move didn't lead to a solution, so lets try the next one
+        # First, though, we need to undo the move (to return puzzle
+        # to state before we tried that move)
+        node.puzzle.undo_move(m)
+        # Remove that last move we tried from the path
+        node.path = node.path[0:-1]
+        # Remove 1 from node's cost
+        node.cost = node.cost - 1
+
+    # Couldn't find a solution here or at any of my successors, so return None
+    # This node is not on a solution path under the depth-limit
+    return None
+
+    ######## PART 2 (IDA*) END   ##########
+
+
 def run_best_first_search(
     fringe: PriorityQueue[SearchNode], options: argparse.Namespace
 ) -> tuple[int, int] | tuple[None, None]:
@@ -467,7 +629,10 @@ def getOptions(args: list[str] = sys.argv[1:]) -> argparse.Namespace:
     parser.add_argument(
         "-s",
         "--search",
-        help="Search type: Options: ids (iterative deepening search) or bfs (best first search)",
+        help=(
+            "Search type: Options: ids (iterative deepening search), "
+            "ida (iterative deepening A*), or bfs (best first search)"
+        ),
         default="ids",
     )
     parser.add_argument(
@@ -538,8 +703,11 @@ if __name__ == "__main__":
         elif options.search == "ids":
             # Use this line to run the iterative deepening-search
             exp, pl = run_iterative_search(start_node)
+        elif options.search == "ida":
+            # Use this line to run the iterative deepening A* search (Part 2)
+            exp, pl = run_ida_search(start_node)
         else:
-            print("Search option not valid. Can be bfs or ids")
+            print("Search option not valid. Can be bfs, ids, or ida")
             sys.exit()
 
         if exp is None or pl is None:
