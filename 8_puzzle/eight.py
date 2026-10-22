@@ -261,7 +261,15 @@ def manhattan_distance_to_goal(puzzle: Puzzle) -> int:
 
     # YOUR TASK 1.4.2 CODE HERE
 
-    return 0  # change this!
+    total_dist = 0
+
+    for tile in range(1, len(puzzle.state)):
+        pos = puzzle.state.index(tile)
+
+        total_dist += abs(get_tile_row(tile) - get_tile_row(pos))
+        total_dist += abs(get_tile_column(tile) - get_tile_column(pos))
+
+    return total_dist
 
     ######## TASK 1.4.2 END   ##########
 
