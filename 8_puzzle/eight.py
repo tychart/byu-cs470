@@ -13,6 +13,8 @@ from queue import PriorityQueue
 # 3 4 5
 # 6 7 8
 
+INFINITY: float = float("inf")
+
 
 class Puzzle:
     """
@@ -157,7 +159,6 @@ class SearchNode:
         ######## TASK 1.3 BEGIN ##########
 
         # Modify these lines to implement the search algorithms (greedy, Uniform-cost or A*)
-        self.h = heuristic(self, self.options)
         self.f_value = 0
 
         if self.options.type == "g":
@@ -407,9 +408,9 @@ def run_ida_search(start_node: SearchNode) -> tuple[int, int] | tuple[None, None
     prunes every node whose f-value exceeds the current cost bound; if the iteration
     fails it raises the bound to the smallest f-value that overshot it and tries again.
 
-    IDA* always evaluates nodes as f = g + h = cost + heuristic, so it uses the A*
-    f-value regardless of the -t flag.  (Pass -t a to make that explicit, or note in
-    the write-up that -t is ignored when -s ida is used.)
+    IDA* always evaluates nodes as f = g + h = cost + heuristic, so it always uses the A*
+    evaluation function: -t defaults to a when -s ida is used, and any other explicit -t is
+    rejected in __main__ instead of being silently ignored.
 
     Returns (nodes_expanded, path_length) on success or (None, None) on failure, so the
     stats-collection code in __main__ works unchanged.
@@ -428,25 +429,27 @@ def run_ida_search(start_node: SearchNode) -> tuple[int, int] | tuple[None, None
     #   - otherwise set bound = visited["next"] and iterate again
 
     # Our initial bound
-    bound = 1
-
-    # Maximum bound
-    max_depth_limit = 40
+    bound: int = start_node.h
 
     # Keep track of the total number of nodes we expand
     total_expanded = 0
 
-    # Keep trying until our depth limit for the F value hits 40
-    while bound < max_depth_limit:
+    # Keep trying until our bound limit for the F value becomes infinity, because that indicates
+    # that the function has ran out of routes to check, and so the answer must not exist
+    while bound < INFINITY:
         # Store visited nodes along the current search path
-        visited = dict()
+        visited: dict[str, int | float | bool] = dict()
         visited["N"] = 0
+
+        # The highest possible number, every failed solution will be better than this, so it
+        # will get overwritten when needed by the run_ida_dfs
+        visited["next"] = INFINITY
 
         # Mark the initial state as visited
         visited[start_node.puzzle.id()] = True
 
         # Run depth-limited search starting at initial node (which points to initial state)
-        path_length = run_ida_dfs(start_node, bound, visited)
+        path_length: int | None = run_ida_dfs(start_node, bound, visited)
 
         # See how many nodes we expanded on this iteration and add it to our total
         total_expanded += visited["N"]
@@ -455,11 +458,12 @@ def run_ida_search(start_node: SearchNode) -> tuple[int, int] | tuple[None, None
         if path_length is not None:
             # It was! Print out information and return the search stats
             print("Expanded ", total_expanded, "nodes")
-            print("IDA* Found solution at depth", bound)
+            print("IDA* Found solution at f bound", bound)
             return total_expanded, path_length
 
-        # No solution was found at this depth limit, so increment our depth-limit
-        bound += 1
+        # No solution was found at this bound limit, so we expand the bound
+        # to be the lowest f value we have found so far
+        bound: int | float = visited["next"]
 
     # No solution was found at any depth-limit, so
     # return None,None (Which signifies no solution found)
@@ -468,7 +472,9 @@ def run_ida_search(start_node: SearchNode) -> tuple[int, int] | tuple[None, None
     ######## PART 2 (IDA*) END   ##########
 
 
-def run_ida_dfs(node: SearchNode, bound: int, visited: dict[str, int]) -> int | None:
+def run_ida_dfs(
+    node: SearchNode, bound: int | float, visited: dict[str, int | float | bool]
+) -> int | None:
     """
     Recursive depth-first search for IDA*:
 
@@ -497,7 +503,7 @@ def run_ida_dfs(node: SearchNode, bound: int, visited: dict[str, int]) -> int | 
     #     already on the search path, recurse, then undo_move / restore path / restore
     #     cost on backtrack (and drop the state from visited)
 
-    visited["N"] = visited["N"] + 1  # Increment our node expansion counter
+    visited["N"] += 1  # Increment our node expansion counter
 
     # Check to see if this is a goal node
     if node.puzzle.is_solved():
@@ -505,9 +511,15 @@ def run_ida_dfs(node: SearchNode, bound: int, visited: dict[str, int]) -> int | 
         print("Iterative Deepening A* SOLVED THE PUZZLE! SOLUTION = ", node.path)
         return len(node.path)
 
-    # Check to see if the bound has been reached (f value is too high)
-    if len(node.path) >= bound:
-        # It has. Return None, signifying that no path was found
+    # # Check to see if the bound has been reached (f value is too high)
+    # if len(node.path) >= bound:
+    #     # It has. Return None, signifying that no path was found
+    #     return None
+
+    # If the current node's f value is lower than the current next value, then it will get
+    # overwritten. This leads to the "next" value being the lowest from this search operation
+    if node.f_value > bound:
+        visited["next"] = min(visited["next"], node.f_value)
         return None
 
     # Generate successors and recurse on them
@@ -548,8 +560,10 @@ def run_ida_dfs(node: SearchNode, bound: int, visited: dict[str, int]) -> int | 
         # First, though, we need to undo the move (to return puzzle
         # to state before we tried that move)
         node.puzzle.undo_move(m)
+
         # Remove that last move we tried from the path
         node.path = node.path[0:-1]
+
         # Remove 1 from node's cost
         node.cost = node.cost - 1
 
@@ -647,10 +661,19 @@ def getOptions(args: list[str] = sys.argv[1:]) -> argparse.Namespace:
     parser.add_argument(
         "-t",
         "--type",
-        help="Evaluation function type: Options: g (greedy), u (uniform cost), or a (a-star)",
-        default="u",
+        help=(
+            "Evaluation function type: Options: g (greedy), u (uniform cost), or a (a-star). "
+            "Defaults to u, or to a when -s ida is used (IDA* requires a-star)"
+        ),
+        default=None,
     )
     options = parser.parse_args(args)
+
+    # IDA* is only valid with the A* evaluation function, so -t defaults to a for it.
+    # (None here means the user didn't pass -t at all, so nothing was requested to reject.)
+    if options.type is None:
+        options.type = "a" if options.search == "ida" else "u"
+
     return options
 
 
@@ -666,6 +689,7 @@ if __name__ == "__main__":
 
     # You can modify the maximum number of puzzles to solve if you want to test on more puzzles
     max_to_solve = 40
+    # max_to_solve = 1
 
     # Variables to keep track of solving statistics
     num_solved = 0
@@ -705,6 +729,18 @@ if __name__ == "__main__":
             exp, pl = run_iterative_search(start_node)
         elif options.search == "ida":
             # Use this line to run the iterative deepening A* search (Part 2)
+            # IDA* always evaluates nodes with f = g + h, so any other -t would just be
+            # silently ignored (and produce results you didn't ask for).  Refuse the
+            # combination instead.  -t defaults to a for -s ida, so only an explicit
+            # -t g / -t u can trip this check.
+            if options.type != "a":
+                print(
+                    "Invalid search options: IDA* (-s ida) always uses the A* evaluation "
+                    f"function (f = g + h), so -t {options.type} cannot be used with it. "
+                    "Use -t a or omit -t."
+                )
+                sys.exit()
+
             exp, pl = run_ida_search(start_node)
         else:
             print("Search option not valid. Can be bfs, ids, or ida")
