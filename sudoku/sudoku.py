@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 import time
 
@@ -29,13 +31,13 @@ class Cell:
     def __init__(self) -> None:
 
         # The domain contains a list of the values that this variable could take on
-        self.domain = list(range(1, 10))
+        self.domain: list[int] = list(range(1, 10))
 
         # The value assigned to this variable if it has been assigned
         # None means that it hasn't been assigned
-        self.value = None
+        self.value: int | None = None
 
-    def assign_value(self, value) -> None:
+    def assign_value(self, value: int) -> None:
         """
         Assign [value] to be this variable's value
         This function sets the domain to be only this value, and sets the value to be the value
@@ -43,7 +45,7 @@ class Cell:
         self.domain = [value]
         self.value = value
 
-    def set_domain(self, domain) -> None:
+    def set_domain(self, domain: list[int]) -> None:
         """
         Set the domain of this variable to be [domain]
         Set the value to unassigned (= None)
@@ -51,7 +53,7 @@ class Cell:
         self.domain = domain[:]
         self.value = None
 
-    def remove_value(self, value) -> bool:
+    def remove_value(self, value: int) -> bool:
         """
         Remove [value] from this variable's domain
         Return False if the domain for this variable is now empty
@@ -61,7 +63,7 @@ class Cell:
             self.domain.remove(value)
         return len(self.domain) == 0
 
-    def copy_cell(self, other) -> None:
+    def copy_cell(self, other: Cell) -> None:
         """
         Set the domain and value of this cell to that of the input other cell
         """
@@ -78,9 +80,9 @@ class Sudoku:
         """
         Initialize this puzzle by creating all of the cells (initially empty)
         """
-        self.cells = [[Cell() for j in range(9)] for i in range(9)]
+        self.cells: list[list[Cell]] = [[Cell() for j in range(9)] for i in range(9)]
 
-    def copy_puzzle(self, other) -> None:
+    def copy_puzzle(self, other: Sudoku) -> None:
         """
         Set all of this puzzle's cells to be the same as the other puzzle (input to function)
         """
@@ -126,7 +128,7 @@ class Sudoku:
                     return False
         return True
 
-    def input_puzzle(self, puzzle_string) -> None:
+    def input_puzzle(self, puzzle_string: str) -> None:
         """
         Initialize this puzzle to match the starting state specified by [puzzle string]
         This is done by assigning all of the cells to be their given value (if specified)
@@ -148,15 +150,18 @@ class Sudoku:
         # was assigned a value
         for r in range(9):
             for c in range(9):
-                if self.cells[r][c].value is not None:
-                    success = self.forward_check(r, c, self.cells[r][c].value)
+                # Bind the value to a local so it is narrowed to int below
+                value = self.cells[r][c].value
+                if value is not None:
+                    success = self.forward_check(r, c, value)
                     if not success:
                         ### This puzzle has some serious problem.  Exit now.
                         print("Contradiction in Puzzle! Invalid input. Exiting")
                         print(" Puzzle string: ", puzzle_string)
                         sys.exit()
 
-    def forward_check(self, row, column, value, mode="remove"):
+    # TASK 2 stub: add the missing return, then delete the ty: ignore on the next line.
+    def forward_check(self, row: int, column: int, value: int, mode: str = "remove") -> bool | int:  # ty: ignore[invalid-return-type]
         """
         Perform forward checking for the assignment of [value] to the cell at [row], [column]
         If [mode] == remove, then values should actually be removed other cell domains.
@@ -174,7 +179,7 @@ class Sudoku:
         elif mode == "count":
             return 0
 
-    def get_row_column(self, grid, cell) -> tuple[int, int]:
+    def get_row_column(self, grid: int, cell: int) -> tuple[int, int]:
         """
         Return the row and column indices for a given [grid] and [cell] location
         """
@@ -184,7 +189,7 @@ class Sudoku:
         off_c = cell % 3
         return base_r + off_r, base_c + off_c
 
-    def get_grid_cell(self, row, column) -> tuple[int, int]:
+    def get_grid_cell(self, row: int, column: int) -> tuple[int, int]:
         """
         Return the grid and cell indices for a given [row] and [column] location
         """
@@ -202,7 +207,7 @@ class Sudoku:
 # it is an object of the Sudoku puzzle class [Sudoku]
 
 
-def mrv(puzzle, unassigned):
+def mrv(puzzle: Sudoku, unassigned: list[tuple[int, int]]) -> list[tuple[int, int]]:
     """
     Return a list of the (row, column) tuples, out of the list of [unassigned] cells given
     that have the minimum remaining values
@@ -213,14 +218,15 @@ def mrv(puzzle, unassigned):
     return unassigned
 
 
-def max_degree(puzzle, tied):
+def max_degree(puzzle: Sudoku, tied: list[tuple[int, int]]) -> list[tuple[int, int]]:
     """
-    Return a list of the (row, column) tuples, out of the list of [tied] cells (according to mrv) given
-    that have the maximum degree, i.e. are connected to the most unassigned other variables
+    Return a list of the (row, column) tuples, out of the list of [tied] cells
+    (according to mrv) given that have the maximum degree, i.e. are connected to the most
+    unassigned other variables
     This uses the count_constraints function
     """
     max_c = 0
-    mc_variables = []
+    mc_variables: list[tuple[int, int]] = []
     for t in tied:
         cur_c = count_constraints(puzzle, t[0], t[1])
         if cur_c == max_c:
@@ -232,7 +238,8 @@ def max_degree(puzzle, tied):
     return mc_variables
 
 
-def count_constraints(puzzle, row, column):
+# TASK 3 stub: add the return statement, then delete the ty: ignore on the next line.
+def count_constraints(puzzle: Sudoku, row: int, column: int) -> int:  # ty: ignore[empty-body]
     """
     Count the number of unassigned variables that are in the same row, column and grid as
     the input location [row], [column]
@@ -246,12 +253,12 @@ def count_constraints(puzzle, row, column):
     # return 0
 
 
-def get_unassigned_variables(puzzle):
+def get_unassigned_variables(puzzle: Sudoku) -> list[tuple[int, int]]:
     """
     Return a list of the variables in the puzzle that haven't been assigned a value
     yet. These will be (row, column) tuples
     """
-    unassigned = []
+    unassigned: list[tuple[int, int]] = []
     for r in range(9):
         for c in range(9):
             # Unassigned cells have a value of None
@@ -260,7 +267,7 @@ def get_unassigned_variables(puzzle):
     return unassigned
 
 
-def select_variable(puzzle):
+def select_variable(puzzle: Sudoku) -> tuple[int, int]:
     """
     This function will return the row and column location of the variable that should be
     selected next from [puzzle].
@@ -287,7 +294,7 @@ def select_variable(puzzle):
     return most_constaining_variables[0][0], most_constaining_variables[0][1]
 
 
-def order_values(puzzle, row, column):
+def order_values(puzzle: Sudoku, row: int, column: int) -> list[int]:
     """
     For the variable at the given row and column, return the values of this variables domain,
     ordered by the least-constraining value heuristic.  You can use the forward_check() function
@@ -304,7 +311,7 @@ def order_values(puzzle, row, column):
     return domain
 
 
-def backtracking_search(puzzle):
+def backtracking_search(puzzle: Sudoku) -> Sudoku | None:
     """
     Perform a recursive backtracking search on [puzzle],
     ensuring that a copy is made of the puzzle
@@ -362,55 +369,51 @@ if __name__ == "__main__":
         print("Searching for solutions to puzzles from file: ", sys.argv[1])
 
         # Open puzzle file
-        pf = open(sys.argv[1])
+        with open(sys.argv[1]) as pf:
+            # How many puzzles do we want to solve
+            max_to_solve = 10
 
-        # How many puzzles do we want to solve
-        max_to_solve = 10
+            # Variable to keep track of the number of puzzles solved
+            num_solved = 0
 
-        # Variable to keep track of the number of puzzles solved
-        num_solved = 0
+            # Start time for solving
+            start_time = time.perf_counter()
 
-        # Start time for solving
-        start_time = time.perf_counter()
+            # Each puzzle takes up a single line in the file
+            for ps in pf.readlines():
+                print("\nSearching to find solution to following puzzle:", ps)
 
-        # Each puzzle takes up a single line in the file
-        for ps in pf.readlines():
-            print("\nSearching to find solution to following puzzle:", ps)
+                # Create a new puzzle to solve
+                p = Sudoku()
 
-            # Create a new puzzle to solve
-            p = Sudoku()
+                # Initialize the puzzle to match the file
+                p.input_puzzle(ps.rstrip())
 
-            # Initialize the puzzle to match the file
-            p.input_puzzle(ps.rstrip())
+                # Display the puzzle (before it has been solved)
+                p.print_puzzle()
 
-            # Display the puzzle (before it has been solved)
-            p.print_puzzle()
+                # Solve the puzzle
+                success_p = backtracking_search(p)
 
-            # Solve the puzzle
-            success_p = backtracking_search(p)
+                # If the puzzle was solved (success_p is the puzzle, None if no solution)
+                if success_p:
+                    print("\n Successfully solved puzzle!  Here is solution:\n")
 
-            # If the puzzle was solved (success_p is the puzzle, None if no solution)
-            if success_p:
-                print("\n Successfully solved puzzle!  Here is solution:\n")
+                    # Display the solution to the puzzle
+                    success_p.print_puzzle()
+                    num_solved += 1
+                    # Update the statistics
 
-                # Display the solution to the puzzle
-                success_p.print_puzzle()
-                num_solved += 1
-                # Update the statistics
+                else:
+                    print("\n!! Unable to solve puzzle !!\n")
+                    break
 
-            else:
-                print("\n!! Unable to solve puzzle !!\n")
-                break
-
-            # Stop when we solve enough
-            if num_solved > max_to_solve:
-                break
+                # Stop when we solve enough
+                if num_solved > max_to_solve:
+                    break
 
         # Record end time
         end_time = time.perf_counter()
-
-        # Close the puzzle file
-        pf.close()
 
         # Print Statistics
         print(
