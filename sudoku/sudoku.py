@@ -419,12 +419,16 @@ def backtracking_search(puzzle: Sudoku) -> Sudoku | None:
     # 2. Select a variable to assign next ( use select_variable() function, which returns
     #    row and column of the variable
 
-    coord = select_variable(puzzle)
+    coord: tuple[int, int] = select_variable(puzzle)
 
     # 3. Select an ordering over the values (use order_values(r,c) where r, c are the row
     #    and column of the selected variable.  It returns a list of values
 
-    next_values = order_values(puzzle, coord[0], coord[1])
+    # Uses least constraining value huristic
+    next_values: list[int] = order_values(puzzle, coord[0], coord[1])
+
+    # No least constraining value huristic
+    # next_values: list[int] = puzzle.cells[coord[0]][coord[1]].domain
 
     # 4. For each value in the ordered list:
 
@@ -446,19 +450,19 @@ def backtracking_search(puzzle: Sudoku) -> Sudoku | None:
         #     which will return False if this assignment is invalid (empty domain was found)
         #     or True if it is valid.
 
-        if (
-            curr_puzzle.forward_check(coord[0], coord[1], curr_value, mode="remove")
-            and backtracking_search(curr_puzzle) is not None
-        ):
+        if curr_puzzle.forward_check(coord[0], coord[1], curr_value, mode="remove"):
             # 4.4 If forward checking detects a problem, then continue to the next value
 
             # 4.5 If forward checking doesn't detect problem, then recurse on the
             #     modified puzzle (call backtracking_search())
 
+            returned_puzzle: Sudoku | None = backtracking_search(curr_puzzle)
+
             # 4.6 If the search succeeds (return value of backtracking is not None)
             #     return solved puzzle! (this is what backtracking_search should return)
 
-            return curr_puzzle
+            if returned_puzzle is not None:
+                return curr_puzzle
 
         # 4.7 If search is a failure, continue with next value for this variable
 
