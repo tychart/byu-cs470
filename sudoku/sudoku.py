@@ -8,6 +8,25 @@ import time
 # archibald@cs.byu.edu
 # Last Updated February 5, 2020
 
+# ---------------------------------------------------------------------------
+# Write-up experiment switches
+#
+# These control which heuristics the search uses.  They exist so the heuristic
+# comparison required by the write-up can be run without editing the code
+# between runs: an experiment script imports this module and reassigns these
+# module-level names before calling backtracking_search().
+#
+#   USE_MRV    - order variables by minimum remaining values (Task 4)
+#   USE_DEGREE - break MRV ties by maximum degree (Task 3, via max_degree)
+#   USE_LCV    - order values by least constraining value (Task 5)
+#
+# All three default to True, which is the full-heuristic solver, so a normal
+# run (and grading) is unaffected by these switches.
+# ---------------------------------------------------------------------------
+USE_MRV: bool = False
+USE_DEGREE: bool = False
+USE_LCV: bool = True
+
 
 def student_name() -> str:
     """
@@ -354,19 +373,24 @@ def select_variable(puzzle: Sudoku) -> tuple[int, int]:
     unassigned = get_unassigned_variables(puzzle)
 
     # 1. Use MRV heuristic to get list of variables with the min remaining values
-    minimum_remaining_values = mrv(puzzle, unassigned)
+    #    Without MRV (USE_MRV == False) no variable is preferred, so every unassigned
+    #    variable stays a candidate and selection falls back to scan order (row-major)
+    candidates: list[tuple[int, int]] = mrv(puzzle, unassigned) if USE_MRV else unassigned
 
     # If MRV identifies a unique variable, then return it
-    if len(minimum_remaining_values) == 1:
-        return minimum_remaining_values[0][0], minimum_remaining_values[0][1]
+    if len(candidates) == 1:
+        return candidates[0][0], candidates[0][1]
 
     # 2. Refine list to those with maximum degree
-    most_constaining_variables = max_degree(puzzle, minimum_remaining_values)
+    #    Without the degree heuristic (USE_DEGREE == False) ties stay unbroken, so the
+    #    remaining tie is resolved arbitrarily by taking the first candidate below
+    if USE_DEGREE:
+        candidates = max_degree(puzzle, candidates)
 
     # 3. Return first variable in the list.  This will be the only one if there was a
     #    unique most constraining variable, or the "alphabetically first" or "arbitrary" one of
     #    them if there were ties
-    return most_constaining_variables[0][0], most_constaining_variables[0][1]
+    return candidates[0][0], candidates[0][1]
 
 
 def order_values(puzzle: Sudoku, row: int, column: int) -> list[int]:
@@ -379,6 +403,12 @@ def order_values(puzzle: Sudoku, row: int, column: int) -> list[int]:
 
     # Get the current domain for this variable
     domain: list[int] = puzzle.cells[row][column].domain[:]
+
+    # Without the least-constraining-value heuristic (USE_LCV == False) the domain is used
+    # in its natural order instead of being ordered by how many values each choice removes
+    if not USE_LCV:
+        return domain
+
     val_dict: dict[int, int] = {}
     out_list: list[int] = []
 
@@ -424,11 +454,9 @@ def backtracking_search(puzzle: Sudoku) -> Sudoku | None:
     # 3. Select an ordering over the values (use order_values(r,c) where r, c are the row
     #    and column of the selected variable.  It returns a list of values
 
-    # Uses least constraining value huristic
+    # Uses least constraining value huristic (controlled by the USE_LCV switch; with it
+    # turned off, order_values() simply returns the domain in its natural order)
     next_values: list[int] = order_values(puzzle, coord[0], coord[1])
-
-    # No least constraining value huristic
-    # next_values: list[int] = puzzle.cells[coord[0]][coord[1]].domain
 
     # 4. For each value in the ordered list:
 
@@ -462,7 +490,7 @@ def backtracking_search(puzzle: Sudoku) -> Sudoku | None:
             #     return solved puzzle! (this is what backtracking_search should return)
 
             if returned_puzzle is not None:
-                return curr_puzzle
+                return returned_puzzle
 
         # 4.7 If search is a failure, continue with next value for this variable
 
