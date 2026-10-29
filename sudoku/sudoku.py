@@ -17,7 +17,7 @@ def student_name() -> str:
     # Task 1 CODE HERE
 
     # Change to be your name
-    return "Cosmo Cougar"
+    return "Tyler Chartrand"
 
 
 class Cell:
