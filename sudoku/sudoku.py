@@ -413,40 +413,57 @@ def backtracking_search(puzzle: Sudoku) -> Sudoku | None:
     # 1. Base case, is input [puzzle] solved? If so, return the puzzle. Use is_solved() function
     #    to see if the puzzle is solved.
 
-    if puzzle.is_solved:
+    if puzzle.is_solved():
         return puzzle
 
     # 2. Select a variable to assign next ( use select_variable() function, which returns
     #    row and column of the variable
 
+    coord = select_variable(puzzle)
+
     # 3. Select an ordering over the values (use order_values(r,c) where r, c are the row
     #    and column of the selected variable.  It returns a list of values
 
+    next_values = order_values(puzzle, coord[0], coord[1])
+
     # 4. For each value in the ordered list:
 
-    # 4.1 Get a copy of the puzzle to modify
-    #     4.1.a Create new puzzle
+    for curr_value in next_values:
+        # 4.1 Get a copy of the puzzle to modify
+        #     4.1.a Create new puzzle
 
-    #     4.1.b Set it to be equal to the current puzzle (use copy_puzzle())
+        curr_puzzle: Sudoku = Sudoku()
 
-    # 4.2 Assign current value to selected variable (use assign_value())
+        #     4.1.b Set it to be equal to the current puzzle (use copy_puzzle())
 
-    # 4.3 Forward check from this assignment (use forward_check(), in 'remove' mode)
-    #     which will return False if this assignment is invalid (empty domain was found)
-    #     or True if it is valid.
+        curr_puzzle.copy_puzzle(puzzle)
 
-    # 4.4 If forward checking detects a problem, then continue to the next value
+        # 4.2 Assign current value to selected variable (use assign_value())
 
-    # 4.5 If forward checking doesn't detect problem, then recurse on the
-    #     modified puzzle (call backtracking_search())
+        curr_puzzle.cells[coord[0]][coord[1]].assign_value(curr_value)
 
-    # 4.6 If the search succeeds (return value of backtracking is not None)
-    #     return solved puzzle! (this is what backtracking_search should return)
+        # 4.3 Forward check from this assignment (use forward_check(), in 'remove' mode)
+        #     which will return False if this assignment is invalid (empty domain was found)
+        #     or True if it is valid.
 
-    # 4.7 If search is a failure, continue with next value for this variable
+        if (
+            curr_puzzle.forward_check(coord[0], coord[1], curr_value, mode="remove")
+            and backtracking_search(curr_puzzle) is not None
+        ):
+            # 4.4 If forward checking detects a problem, then continue to the next value
+
+            # 4.5 If forward checking doesn't detect problem, then recurse on the
+            #     modified puzzle (call backtracking_search())
+
+            # 4.6 If the search succeeds (return value of backtracking is not None)
+            #     return solved puzzle! (this is what backtracking_search should return)
+
+            return curr_puzzle
+
+        # 4.7 If search is a failure, continue with next value for this variable
 
     # 5. If all values for the chosen variable failed, return failure (None)
-    # return None
+    return None
 
 
 if __name__ == "__main__":
