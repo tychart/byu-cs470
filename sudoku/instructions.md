@@ -1,9 +1,3 @@
-Thank you! That screenshot is exactly what was needed. The text extraction in the original PDF definitely dropped all the periods (`.`), which is why the string looked so malformed.
-
-Here is the complete, accurate markdown version of the handout with the correct Figure 1 and puzzle string incorporated into its original location.
-
-***
-
 # CS 470 Programming Assignment: CSP Sudoku Solver
 
 This assignment involves solving Sudoku puzzles using a Constraint Satisfaction approach. You should first download the Sudoku-CSP.zip file from Canvas and unzip in on your computer. The provided code has been tested with Python 3, but should work with minor changes on other versions of Python.

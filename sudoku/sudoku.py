@@ -56,8 +56,8 @@ class Cell:
     def remove_value(self, value: int) -> bool:
         """
         Remove [value] from this variable's domain
-        Return False if the domain for this variable is now empty
-        Return True if there is still at least one variable in the domain
+        Return True if the domain for this variable is now empty
+        Return False if there is still at least one variable in the domain
         """
         if value in self.domain:
             self.domain.remove(value)
@@ -161,7 +161,7 @@ class Sudoku:
                         sys.exit()
 
     # TASK 2 stub: add the missing return, then delete the ty: ignore on the next line.
-    def forward_check(self, row: int, column: int, value: int, mode: str = "remove") -> bool | int:  # ty: ignore[invalid-return-type]
+    def forward_check(self, row: int, column: int, value: int, mode: str = "remove") -> bool | int:
         """
         Perform forward checking for the assignment of [value] to the cell at [row], [column]
         If [mode] == remove, then values should actually be removed other cell domains.
@@ -173,11 +173,47 @@ class Sudoku:
 
         # TASK 2 Code here
 
-        # Modify these return values!!
-        if mode == "remove":
-            return True
-        elif mode == "count":
-            return 0
+        counter: int = 0
+
+        # For row
+        for c in range(len(self.cells[row])):
+            if c == column:
+                continue
+            if mode == "remove" and self.cells[row][c].remove_value(value):
+                return False
+            if mode == "count" and value in self.cells[row][c].domain:
+                counter += 1
+
+        # For col
+        for r in range(len(self.cells)):
+            if r == row:
+                continue
+            if mode == "remove" and self.cells[r][column].remove_value(value):
+                return False
+            if mode == "count" and value in self.cells[r][column].domain:
+                counter += 1
+
+        # For grid
+        row_start: int = (row // 3) * 3
+        col_start: int = (column // 3) * 3
+
+        for r in range(row_start, row_start + 3):
+            for c in range(col_start, col_start + 3):
+                # If already counted curr item, or if curr item is actually the evaluated item
+                if r == row or c == column:
+                    continue
+                if mode == "remove" and self.cells[r][c].remove_value(value):
+                    return False
+                if mode == "count" and value in self.cells[r][c].domain:
+                    counter += 1
+
+        # Return the total count of all cells that had the value in their domain
+        if mode == "count":
+            return counter
+
+        # If it got here on remove mode, then all of the cells still have at least one value in
+        # their domain
+        return True
 
     def get_row_column(self, grid: int, cell: int) -> tuple[int, int]:
         """
