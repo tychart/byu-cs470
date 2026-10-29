@@ -250,8 +250,24 @@ def mrv(puzzle: Sudoku, unassigned: list[tuple[int, int]]) -> list[tuple[int, in
     [unassigned] is a list of (row, column) tuples corresponding to cell locations
     """
 
-    # Change this.  Return your list of minimum remaining value locations
-    return unassigned
+    # TASK 4 Code here
+
+    sorted_dict: dict[tuple[int, int], int] = {}
+    min_remaining_values_count = 1000
+
+    for coord in unassigned:
+        curr_num = len(puzzle.cells[coord[0]][coord[1]].domain)
+        sorted_dict[coord] = curr_num
+
+        if curr_num < min_remaining_values_count:
+            min_remaining_values_count = curr_num
+
+    out_list = []
+    for coord, num in sorted_dict.items():
+        if num == min_remaining_values_count:
+            out_list.append(coord)
+
+    return out_list
 
 
 def max_degree(puzzle: Sudoku, tied: list[tuple[int, int]]) -> list[tuple[int, int]]:
@@ -275,7 +291,7 @@ def max_degree(puzzle: Sudoku, tied: list[tuple[int, int]]) -> list[tuple[int, i
 
 
 # TASK 3 stub: add the return statement, then delete the ty: ignore on the next line.
-def count_constraints(puzzle: Sudoku, row: int, column: int) -> int:  # ty: ignore[empty-body]
+def count_constraints(puzzle: Sudoku, row: int, column: int) -> int:
     """
     Count the number of unassigned variables that are in the same row, column and grid as
     the input location [row], [column]
@@ -284,6 +300,29 @@ def count_constraints(puzzle: Sudoku, row: int, column: int) -> int:  # ty: igno
     """
 
     # TASK 3 CODE HERE
+
+    counter: int = 0
+
+    # For row
+    for c in range(len(puzzle.cells[row])):
+        if puzzle.cells[row][c].value is None:
+            counter += 1
+
+    # For col
+    for r in range(len(puzzle.cells)):
+        if puzzle.cells[r][column].value is None:
+            counter += 1
+
+    # For grid
+    row_start: int = (row // 3) * 3
+    col_start: int = (column // 3) * 3
+
+    for r in range(row_start, row_start + 3):
+        for c in range(col_start, col_start + 3):
+            if puzzle.cells[r][c].value is None:
+                counter += 1
+
+    return counter
 
     # MODIFY THIS
     # return 0
