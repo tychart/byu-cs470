@@ -378,12 +378,22 @@ def order_values(puzzle: Sudoku, row: int, column: int) -> list[int]:
     """
 
     # Get the current domain for this variable
-    domain = puzzle.cells[row][column].domain[:]
+    domain: list[int] = puzzle.cells[row][column].domain[:]
+    val_dict: dict[int, int] = {}
+    out_list: list[int] = []
 
     # TASK 5 CODE HERE
 
+    for value in domain:
+        val_dict[value] = puzzle.forward_check(row, column, value, mode="count")
+
+    sorted_list: list[tuple[int, int]] = sorted(val_dict.items(), key=lambda item: item[1])
+
+    for val, _ in sorted_list:
+        out_list.append(val)
+
     # Change this to return an ordered list
-    return domain
+    return out_list
 
 
 def backtracking_search(puzzle: Sudoku) -> Sudoku | None:
@@ -402,6 +412,9 @@ def backtracking_search(puzzle: Sudoku) -> Sudoku | None:
 
     # 1. Base case, is input [puzzle] solved? If so, return the puzzle. Use is_solved() function
     #    to see if the puzzle is solved.
+
+    if puzzle.is_solved:
+        return puzzle
 
     # 2. Select a variable to assign next ( use select_variable() function, which returns
     #    row and column of the variable
