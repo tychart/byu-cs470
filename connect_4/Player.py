@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import numpy as np
@@ -149,6 +150,8 @@ class AIPlayer:
         """
 
         # YOUR EVALUATION FUNCTION GOES HERE
+
+        print("Got to the evaluation function here!")
 
         return 0
 
@@ -409,6 +412,62 @@ class MCTSNode:
 
 # UTILITY FUNCTIONS
 
+##### High speed matrix 45 degree rotation code #####
+
+# =====================================================================
+# 1. SETUP PHASE (Run exactly ONCE at initialization)
+# =====================================================================
+H, W = 6, 7
+OUT_H, OUT_W = H + W - 1, min(H, W)  # 12 x 6 layout for both
+
+# Generate basic pixel coordinates
+y, x = np.indices((H, W))
+
+# --- MAP A: Positive 45° (Top-Left to Bottom-Right Diagonals) ---
+# Diagonals are grouped by (y + x)
+rows_pos = y + x
+cols_pos = y
+
+MAP_POS_45 = np.full((OUT_H, OUT_W), H * W, dtype=np.int32)
+MAP_POS_45[rows_pos, cols_pos] = y * W + x
+
+# --- MAP B: Negative 45° (Top-Right to Bottom-Left Diagonals) ---
+# Anti-diagonals are grouped by ((W - 1 - x) + y)
+rows_neg = (W - 1 - x) + y
+cols_neg = y
+
+MAP_NEG_45 = np.full((OUT_H, OUT_W), H * W, dtype=np.int32)
+MAP_NEG_45[rows_neg, cols_neg] = y * W + x
+
+
+# =====================================================================
+# 2. EXECUTION PHASE (Run thousands of times per second)
+# =====================================================================
+def rotate_45_diagonals(board: Board, flat_idx_map: np.ndarray[Any]) -> Board:
+    """
+    Transforms a 6x7 matrix so diagonals become solid horizontal lines.
+    Zero-padding is restricted strictly to the outer edges.
+    """
+    # Append a trailing 0 to catch all out-of-bounds edge elements
+    return np.append(board.ravel(), 0)[flat_idx_map]
+
+
+##### End imported matrix 45 degree rotation code #####
+
+
+## Setup Precompiled Regex Functions ##
+pattern_strs_player1 = ["11", "111", "1111"]
+pattern_strs_player2 = ["22", "222", "2222"]
+
+
+patterns: dict[int, list[re.Pattern]] = {1: [], 2: []}
+
+for pattern_str in pattern_strs_player1:
+    patterns[1].append(re.compile(pattern=f"(?=({pattern_str}))"))
+
+for pattern_str in pattern_strs_player2:
+    patterns[2].append(re.compile(pattern=f"(?=({pattern_str}))"))
+
 
 # This function will modify the board according to
 # player_number moving into move column
@@ -430,31 +489,71 @@ def get_valid_moves(board: Board) -> list[int]:
 
 # This function returns true if player_num is winning on board
 def is_winning_state(board: Board, player_num: int) -> bool:
-    player_win_str = f"{player_num}{player_num}{player_num}{player_num}"
+    counts = evalutate_board(board=board, player_num=player_num)
+
+    # 1 or more instance of 4 in a row
+    return counts[4] > 0
+
+    # def to_str(a: npt.NDArray[Any]) -> str:
+    #     return "".join(a.astype(str))
+
+    # def check_horizontal(b: Board) -> bool:
+    #     return any(player_win_str in to_str(row) for row in b)
+
+    # def check_vertical(b: Board) -> bool:
+    #     return check_horizontal(b.T)
+
+    # def check_diagonal(b: Board) -> bool:
+    #     for op in (None, np.fliplr):
+    #         op_board = op(b) if op is not None else b
+
+    #         root_diag = np.diagonal(op_board, offset=0).astype(np.int64)
+    #         if player_win_str in to_str(root_diag):
+    #             return True
+
+    #         for i in range(1, b.shape[1] - 3):
+    #             for offset in (i, -i):
+    #                 diag = np.diagonal(op_board, offset=offset).astype(np.int64)
+    #                 if player_win_str in to_str(diag):
+    #                     return True
+
+    #     return False
+
+    # return check_horizontal(board) or check_vertical(board) or check_diagonal(board)
+
+
+# Student made function to abstract and reuse is_winning_state function code
+def evalutate_board(board: Board, player_num: int) -> dict[int, int]:
+    # Contains number of pieces in a row -> number of occurances of that many pieces in a row
+    out_counts: dict[int, int] = {2: 0, 3: 0, 4: 0}
 
     def to_str(a: npt.NDArray[Any]) -> str:
         return "".join(a.astype(str))
 
-    def check_horizontal(b: Board) -> bool:
-        return any(player_win_str in to_str(row) for row in b)
+    def check_horizontal(board: Board, start_row: int = 0, end_row: int = 5) -> None:
 
-    def check_vertical(b: Board) -> bool:
-        return check_horizontal(b.T)
+        for i in range(len(patterns[player_num])):
+            for row_num in range(start_row, end_row + 1):
+                row_str = to_str(board[row_num])
 
-    def check_diagonal(b: Board) -> bool:
-        for op in (None, np.fliplr):
-            op_board = op(b) if op is not None else b
+                # The first pattern detects 2 in a row, so it is offset by 2
+                # Will add onto existing counts
+                out_counts[i + 2] += len(
+                    re.findall(pattern=patterns[player_num][i], string=row_str)
+                )
 
-            root_diag = np.diagonal(op_board, offset=0).astype(np.int64)
-            if player_win_str in to_str(root_diag):
-                return True
+    def check_vertical(board: Board) -> None:
+        check_horizontal(board=board.T, start_row=0, end_row=7)
 
-            for i in range(1, b.shape[1] - 3):
-                for offset in (i, -i):
-                    diag = np.diagonal(op_board, offset=offset).astype(np.int64)
-                    if player_win_str in to_str(diag):
-                        return True
+    def check_diagonal(board: Board) -> None:
+        rotated_board_pos: Board = rotate_45_diagonals(board=board, flat_idx_map=MAP_POS_45)
+        rotated_board_neg: Board = rotate_45_diagonals(board=board, flat_idx_map=MAP_NEG_45)
 
-        return False
+        check_horizontal(board=rotated_board_pos, start_row=3, end_row=8)
+        check_horizontal(board=rotated_board_neg, start_row=3, end_row=8)
 
-    return check_horizontal(board) or check_vertical(board) or check_diagonal(board)
+    check_horizontal(board=board)
+    check_vertical(board=board)
+    check_diagonal(board=board)
+
+    return out_counts
