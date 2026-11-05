@@ -14,6 +14,8 @@ import numpy.typing as npt
 # (0 = empty, 1 = player one, 2 = player two).
 Board = npt.NDArray[np.uint8]
 
+MAX_VAL: int = 10_000
+
 
 class AIPlayer:
     player_number: int
@@ -70,12 +72,55 @@ class AIPlayer:
         RETURNS:
         The 0 based index of the column that represents the next move
         """
-        moves = get_valid_moves(board)
+        moves: list[int] = get_valid_moves(board)
         best_move: int = np.random.choice(moves)
 
         # YOUR ALPHA-BETA CODE GOES HERE
 
+        for move in moves:
+            curr_board: Board = board.copy()
+            make_move(curr_board, move, self.player_number)
+            score: int = self.evaluation_function(board=board)
+
         return best_move
+
+    def recursive_search_max(self, board: Board, depth_limit: int) -> int:
+        if depth_limit <= 0:
+            return self.evaluation_function(board)
+
+        if is_winning_state(board=board, player_num=self.player_number):
+            return MAX_VAL + depth_limit
+
+        best_score: int = MAX_VAL * -1  # Well beyond the maximum score possible in a game
+
+        for move in get_valid_moves(board):
+            curr_board: Board = board.copy()
+            make_move(curr_board, move, self.player_number)
+            curr_score: int = self.recursive_search_min(
+                board=curr_board, depth_limit=depth_limit - 1
+            )
+            best_score: int = max(curr_score, best_score)
+
+        return best_score
+
+    def recursive_search_min(self, board: Board, depth_limit: int) -> int:
+        if depth_limit <= 0:
+            return self.evaluation_function(board) * -1
+
+        if is_winning_state(board=board, player_num=self.other_player_number):
+            return MAX_VAL * -1 + depth_limit
+
+        best_score: int = MAX_VAL  # Well beyond the maximum score possible in a game
+
+        for move in get_valid_moves(board):
+            curr_board: Board = board.copy()
+            make_move(curr_board, move, self.other_player_number)
+            curr_score: int = self.recursive_search_max(
+                board=curr_board, depth_limit=depth_limit - 1
+            )
+            best_score: int = min(curr_score, best_score)
+
+        return best_score
 
     def get_mcts_move(self, board: Board) -> int | None:
         """
@@ -151,15 +196,20 @@ class AIPlayer:
 
         # YOUR EVALUATION FUNCTION GOES HERE
 
-        counts: dict[int, int] = evalutate_board(board=board, player_num=self.player_number)
+        counts_mine: dict[int, int] = evalutate_board(board=board, player_num=self.player_number)
+        counts_theirs: dict[int, int] = evalutate_board(board=board, player_num=self.player_number)
 
-        huristic: int = 0
+        score_mine: int = 0
+        score_theirs: int = 0
 
         # Multiplies the number in a row by the count of those numbers in a row
-        for how_many, count in counts.items():
-            huristic += how_many * count
+        for how_many, count in counts_mine.items():
+            score_mine += how_many * count
 
-        return huristic
+        for how_many, count in counts_theirs.items():
+            score_theirs += how_many * count
+
+        return score_mine - score_theirs
 
 
 class RandomPlayer:
