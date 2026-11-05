@@ -130,7 +130,7 @@ class AIPlayer:
 
         return best_move
 
-    def evaluation_function(self, board: Board) -> float:
+    def evaluation_function(self, board: Board) -> int:
         """
         Given the current stat of the board, return the scalar value that
         represents the evaluation function for the current player
@@ -151,9 +151,15 @@ class AIPlayer:
 
         # YOUR EVALUATION FUNCTION GOES HERE
 
-        print("Got to the evaluation function here!")
+        counts: dict[int, int] = evalutate_board(board=board, player_num=self.player_number)
 
-        return 0
+        huristic: int = 0
+
+        # Multiplies the number in a row by the count of those numbers in a row
+        for how_many, count in counts.items():
+            huristic += how_many * count
+
+        return huristic
 
 
 class RandomPlayer:
