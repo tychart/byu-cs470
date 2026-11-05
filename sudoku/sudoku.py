@@ -24,8 +24,8 @@ import time
 # run (and grading) is unaffected by these switches.
 # ---------------------------------------------------------------------------
 USE_MRV: bool = False
-USE_DEGREE: bool = False
-USE_LCV: bool = True
+USE_DEGREE: bool = True
+USE_LCV: bool = False
 
 
 def student_name() -> str:
@@ -498,71 +498,129 @@ def backtracking_search(puzzle: Sudoku) -> Sudoku | None:
     return None
 
 
+def print_search_statistics(search_times: list[float], num_failed: int = 0) -> None:
+    """
+    Print the timing summary used by the write-up: how many puzzles were solved, how long
+    the search itself took, and the average/min/max per-puzzle search time.
+    Only backtracking_search() time is counted, so parsing and printing the puzzles do not
+    inflate the numbers.
+    """
+    num_solved = len(search_times)
+
+    print("\n**************")
+    print(f" Solved {num_solved} puzzles (search time only, parsing/printing excluded)")
+
+    if num_solved == 0:
+        print(" No puzzles finished -- no timings to report")
+        return
+
+    total_time = sum(search_times)
+    print(f" Total search time  = {total_time:.3f} seconds")
+    print(f" Average solve time = {total_time / num_solved:.3f} seconds")
+    print(f" Fastest puzzle     = {min(search_times):.3f} seconds")
+    print(f" Slowest puzzle     = {max(search_times):.3f} seconds")
+    if num_failed:
+        print(f" Plus {num_failed} puzzle(s) that could not be solved")
+
+
 if __name__ == "__main__":
-    # Check the input arguments (should just be the puzzle file)
-    if len(sys.argv) != 2:
-        print("USAGE: python pa2.py PUZZLE_FILE.txt")
+    # The puzzle file is required; the switches are optional, so the write-up configurations
+    # can be run without editing the file, e.g.
+    #   python sudoku.py puzzles.txt --no-mrv --no-degree --no-lcv
+    puzzle_args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    switch_args = {a for a in sys.argv[1:] if a.startswith("--")}
+
+    if len(puzzle_args) != 1 or switch_args - {"--no-mrv", "--no-degree", "--no-lcv"}:
+        print("USAGE: python pa2.py PUZZLE_FILE.txt [--no-mrv] [--no-degree] [--no-lcv]")
     else:
-        print("Searching for solutions to puzzles from file: ", sys.argv[1])
+        if "--no-mrv" in switch_args:
+            USE_MRV = False
+        if "--no-degree" in switch_args:
+            USE_DEGREE = False
+        if "--no-lcv" in switch_args:
+            USE_LCV = False
 
-        # Open puzzle file
-        with open(sys.argv[1]) as pf:
-            # How many puzzles do we want to solve
-            max_to_solve = 10
-
-            # Variable to keep track of the number of puzzles solved
-            num_solved = 0
-
-            # Start time for solving
-            start_time = time.perf_counter()
-
-            # Each puzzle takes up a single line in the file
-            for ps in pf.readlines():
-                print("\nSearching to find solution to following puzzle:", ps)
-
-                # Create a new puzzle to solve
-                p = Sudoku()
-
-                # Initialize the puzzle to match the file
-                p.input_puzzle(ps.rstrip())
-
-                # Display the puzzle (before it has been solved)
-                p.print_puzzle()
-
-                # Solve the puzzle
-                success_p = backtracking_search(p)
-
-                # If the puzzle was solved (success_p is the puzzle, None if no solution)
-                if success_p:
-                    print("\n Successfully solved puzzle!  Here is solution:\n")
-
-                    # Display the solution to the puzzle
-                    success_p.print_puzzle()
-                    num_solved += 1
-                    # Update the statistics
-
-                else:
-                    print("\n!! Unable to solve puzzle !!\n")
-                    break
-
-                # Stop when we solve enough
-                if num_solved > max_to_solve:
-                    break
-
-        # Record end time
-        end_time = time.perf_counter()
-
-        # Print Statistics
+        # Show the active configuration so a pasted transcript is self-documenting
         print(
-            "\n**************\nSolved",
-            num_solved,
-            "puzzles in",
-            end_time - start_time,
-            " seconds. ",
+            f"Searching for solutions to puzzles from file: {puzzle_args[0]}"
+            f"  [mrv={USE_MRV} degree={USE_DEGREE} lcv={USE_LCV}]"
         )
 
-        # Compute and display average solve time
-        average_time = 0
-        if num_solved > 0:
-            average_time = (end_time - start_time) / float(num_solved)
-        print(" Average Solve Time = ", average_time, " seconds")
+        # How many puzzles do we want to solve
+        max_to_solve = 10
+
+        # Variable to keep track of the number of puzzles solved
+        num_solved = 0
+
+        # Number of puzzles the search failed on (only ever 0 or 1, since we stop there)
+        num_failed = 0
+
+        # Time spent inside backtracking_search() for each puzzle that finished
+        search_times: list[float] = []
+
+        try:
+            # Open puzzle file
+            with open(puzzle_args[0]) as pf:
+                # Each puzzle takes up a single line in the file
+                for ps in pf.readlines():
+                    # Report the running totals before starting, so the numbers are already on
+                    # screen if this puzzle turns out to take too long
+                    if search_times:
+                        totals = sum(search_times)
+                        print(
+                            f"\n--- {num_solved} puzzle(s) done: total {totals:.3f}s,"
+                            f" average {totals / num_solved:.3f}s ---",
+                            flush=True,
+                        )
+
+                    print("\nSearching to find solution to following puzzle:", ps)
+
+                    # Create a new puzzle to solve
+                    p = Sudoku()
+
+                    # Initialize the puzzle to match the file
+                    p.input_puzzle(ps.rstrip())
+
+                    # Display the puzzle (before it has been solved)
+                    p.print_puzzle()
+
+                    # Time only the search itself, so printing and parsing do not inflate it
+                    puzzle_start = time.perf_counter()
+                    success_p = backtracking_search(p)
+                    search_time = time.perf_counter() - puzzle_start
+
+                    # If the puzzle was solved (success_p is the puzzle, None if no solution)
+                    if success_p:
+                        search_times.append(search_time)
+                        num_solved += 1
+
+                        print("\n Successfully solved puzzle!  Here is solution:\n")
+
+                        # Display the solution to the puzzle
+                        success_p.print_puzzle()
+
+                        # Progress report, so partial results survive an early stop
+                        print(
+                            f"\n[{num_solved} solved] this puzzle: {search_time:.3f}s |"
+                            f" total: {sum(search_times):.3f}s |"
+                            f" average: {sum(search_times) / num_solved:.3f}s",
+                            flush=True,
+                        )
+
+                    else:
+                        num_failed += 1
+                        print("\n!! Unable to solve puzzle !!\n")
+                        break
+
+                    # Stop when we solve enough
+                    if num_solved > max_to_solve:
+                        break
+        except KeyboardInterrupt:
+            # Ctrl-C during a long solve: keep everything already measured
+            print(
+                "\n\n Interrupted by user -- reporting the puzzles that finished",
+                flush=True,
+            )
+
+        # Print Statistics
+        print_search_statistics(search_times, num_failed)
