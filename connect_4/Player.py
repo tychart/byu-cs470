@@ -543,7 +543,7 @@ def evalutate_board(board: Board, player_num: int) -> dict[int, int]:
                 )
 
     def check_vertical(board: Board) -> None:
-        check_horizontal(board=board.T, start_row=0, end_row=7)
+        check_horizontal(board=board.T, start_row=0, end_row=6)
 
     def check_diagonal(board: Board) -> None:
         rotated_board_pos: Board = rotate_45_diagonals(board=board, flat_idx_map=MAP_POS_45)
