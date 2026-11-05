@@ -60,6 +60,7 @@ class Game:
     loser: str | None
     ai_turn_limit: int
     interactive: bool
+    auto: bool
     # Only created when the tkinter GUI is actually in use.
     player_string: tk.Label
     c: tk.Canvas
@@ -70,6 +71,7 @@ class Game:
         player2: AnyPlayer,
         time: int,
         interactive: bool,
+        auto: bool = False,
     ) -> None:
         self.players = [player1, player2]
         self.colors = ["yellow", "red"]
@@ -81,6 +83,8 @@ class Game:
         self.loser = None
         self.ai_turn_limit = time
         self.interactive = interactive
+        # --auto: keep playing without waiting for a click / Enter between plies.
+        self.auto = auto
 
         global graphics
         if not interactive:
@@ -102,6 +106,8 @@ class Game:
                 self.gui_board.append(column)
 
             tk.Button(root, text="Next Move", command=self.make_move).pack()
+            if self.auto:
+                self.c.after(50, self.auto_step)
             root.mainloop()
         else:
             if interactive:
@@ -110,7 +116,7 @@ class Game:
 
     def gameloop(self) -> None:
         while True:
-            if self.interactive:
+            if self.interactive and not self.auto:
                 command = input("Press enter to continue game, Type x to end game: ")
                 if command == "x":
                     break
@@ -121,6 +127,19 @@ class Game:
 
         if self.interactive:
             print("Game is over.  Thanks for playing")
+
+    def auto_step(self) -> None:
+        # --auto mode: play one ply, then give control back to the Tk event loop so the
+        # board actually repaints before the next ply starts.
+        if self.game_over:
+            return
+        self.make_move()
+        if self.game_over:
+            # Let the final position be visible for a moment, then close the window so
+            # mainloop() returns and the results get printed.
+            self.c.after(2000, self.c.winfo_toplevel().destroy)
+            return
+        self.c.after(10, self.auto_step)
 
     def make_move(self) -> None:
         if not self.game_over:
@@ -274,6 +293,7 @@ def play_game(
     params2: str | None,
     interactive: bool,
     stats: dict[str, dict[str, int]],
+    auto: bool = False,
 ) -> None:
     """
     Creates player objects based on the string parameters that are passed
@@ -298,6 +318,7 @@ def play_game(
         make_player(player2name, player2, 2, params2),
         time,
         interactive,
+        auto,
     )
 
     # Update stats with winner, loser, or ties
@@ -318,6 +339,7 @@ def main(
     n: int,
     params1: str | None,
     params2: str | None,
+    auto: bool = False,
 ) -> None:
     # Set up this run of the program
 
@@ -371,6 +393,7 @@ def main(
             params[pnames[1]],
             interactive,
             stats,
+            auto,
         )
 
         # Reverse the order of the players
@@ -403,6 +426,28 @@ if __name__ == "__main__":
         default=60,
         help="Time to wait for a move in seconds (int)",
     )
+    parser.add_argument(
+        "-a",
+        "--auto",
+        action="store_true",
+        help="Play every ply automatically instead of clicking 'Next Move' / pressing Enter",
+    )
+    parser.add_argument(
+        "--no-gui",
+        action="store_true",
+        help="Draw the board in the terminal instead of opening the tkinter window",
+    )
     args = parser.parse_args()
 
-    main(args.player1, args.player2, args.time, args.number, args.params1, args.params2)
+    if args.no_gui:
+        graphics = False
+
+    main(
+        args.player1,
+        args.player2,
+        args.time,
+        args.number,
+        args.params1,
+        args.params2,
+        auto=args.auto,
+    )
