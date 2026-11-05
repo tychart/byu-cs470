@@ -86,7 +86,7 @@ class AIPlayer:
             curr_board: Board = board.copy()
             make_move(curr_board, move, self.player_number)
             curr_score: int = self.recursive_search_min(
-                board=curr_board, depth_limit=self.depth_limit - 1
+                board=curr_board, depth_limit=self.depth_limit - 1, alpha=-MAX_VAL, beta=MAX_VAL
             )
             if curr_score > best_score:
                 best_score = curr_score
@@ -94,7 +94,7 @@ class AIPlayer:
 
         return best_move
 
-    def recursive_search_max(self, board: Board, depth_limit: int) -> int:
+    def recursive_search_max(self, board: Board, depth_limit: int, alpha: int, beta: int) -> int:
 
         if is_winning_state(board=board, player_num=self.other_player_number):
             return -MAX_VAL + depth_limit
@@ -113,13 +113,17 @@ class AIPlayer:
             curr_board: Board = board.copy()
             make_move(curr_board, move, self.player_number)
             curr_score: int = self.recursive_search_min(
-                board=curr_board, depth_limit=depth_limit - 1
+                board=curr_board, depth_limit=depth_limit - 1, alpha=alpha, beta=beta
             )
             best_score: int = max(curr_score, best_score)
 
+            alpha = max(alpha, best_score)
+            if alpha >= beta:
+                break
+
         return best_score
 
-    def recursive_search_min(self, board: Board, depth_limit: int) -> int:
+    def recursive_search_min(self, board: Board, depth_limit: int, alpha: int, beta: int) -> int:
 
         if is_winning_state(board=board, player_num=self.player_number):
             return MAX_VAL + depth_limit
@@ -138,9 +142,13 @@ class AIPlayer:
             curr_board: Board = board.copy()
             make_move(curr_board, move, self.other_player_number)
             curr_score: int = self.recursive_search_max(
-                board=curr_board, depth_limit=depth_limit - 1
+                board=curr_board, depth_limit=depth_limit - 1, alpha=alpha, beta=beta
             )
             best_score: int = min(curr_score, best_score)
+
+            beta = min(beta, best_score)
+            if alpha >= beta:
+                break
 
         return best_score
 
