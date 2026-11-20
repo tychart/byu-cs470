@@ -10,6 +10,8 @@ import java.util.Scanner;
 import javax.swing.*;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import java.util.HashMap;
+import java.util.Map;
 
 // This class draws the probability map and value iteration map that you create to the window
 // You need only call updateProbs() and updateValues() from your theRobot class to update these maps
@@ -302,6 +304,14 @@ public class theRobot extends JFrame {
   public static final int EAST = 2;
   public static final int WEST = 3;
   public static final int STAY = 4;
+
+  public static final int[] actions = { NORTH, SOUTH, EAST, WEST, STAY };
+
+  // Mapping of squares to integers
+  public static final int OPEN = 0;
+  public static final int WALL = 1;
+  public static final int STAIRS = 2;
+  public static final int GOAL = 3;
 
   Color bkgroundColor = new Color(230, 230, 230);
 
@@ -701,7 +711,100 @@ public class theRobot extends JFrame {
   }
 
   void valueIteration() {
+    // This function builds the whole value matrix for the map
 
+    this.Vs = new double[mundo.width][mundo.height];
+
+    double gamma = 1.0;
+    double epsilon = 1.0;
+
+    // Declare a Map with String keys and Integer values
+    Map<String, Double> rewards = new HashMap<>();
+
+    // Add or update key-value pairs
+    rewards.put("empty", -1.0);
+    rewards.put("stairway", -10.0);
+    rewards.put("goal", 10.0);
+
+    double threshold = 0.001;
+
+    double changed = 1;
+
+    while (changed > threshold) {
+      for (int x = 0; x < Vs[0].length; x++) {
+        for (int y = 0; y < Vs.length; y++) {
+          if (mundo.grid[x][y] == WALL) {
+            break; // Skip if it is a wall, no value
+          }
+
+          for (int action : theRobot.actions) { // Action the robot tries to take
+            double expected = expectedValue(x, y, action, rewards);
+
+          }
+
+        }
+      }
+
+    }
+
+  }
+
+  double expectedValue(int x, int y, int action, Map<String, Double> rewards) {
+    double expected = 0.0;
+
+    for (int outcome : theRobot.actions) { // Action the robot actually takes
+
+      double intendedDir = calcIntendedDir(action, outcome);
+
+      int movex = 0;
+      int movey = 0;
+
+      switch (outcome) {
+        case NORTH:
+          movey--;
+          break;
+        case SOUTH:
+          movey++;
+          break;
+        case EAST:
+          movex++;
+          break;
+        case WEST:
+          movex--;
+          break;
+        case STAY:
+          break;
+      }
+
+      if (x + movex < 0 ||
+          y + movey < 0 ||
+          x + movex >= mundo.width ||
+          y + movey >= mundo.height) {
+        break; // Out of bounds / outer wall, skip
+      }
+
+      switch (mundo.grid[x + movex][y + movey]) {
+        case OPEN:
+          expected += rewards.get("empty");
+          break;
+
+        case WALL:
+          break; // Skip if it is a wall, no value
+
+        case STAIRS:
+          expected += rewards.get("stairway");
+          ;
+          break;
+
+        case GOAL:
+          expected += rewards.get("goal");
+          ;
+          break;
+
+      }
+    }
+
+    return expected;
   }
 
   void doStuff() {
