@@ -86,8 +86,9 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# Start the server (already compiled in Server/) in the background.
+# Compile the server and start it in the background.
 #   java BayesWorld <world> <moveProb> <sensorAccuracy> <known|unknown>
+javac Server/*.java
 java -cp Server BayesWorld "$WORLD" "$MOVE_PROB" "$SENSOR_PROB" unknown &
 SERVER_PID=$!
 
