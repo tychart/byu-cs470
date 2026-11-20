@@ -87,13 +87,13 @@ class mySmartMap extends JComponent implements KeyListener {
 
   public void paint(Graphics g) {
     paintProbs(g);
-    //paintValues(g);
+    // paintValues(g);
   }
 
   public void paintProbs(Graphics g) {
     double maxProbs = 0.0;
     int mx = 0,
-      my = 0;
+        my = 0;
     for (int y = 0; y < mundo.height; y++) {
       for (int x = 0; x < mundo.width; x++) {
         if (probs[x][y] > maxProbs) {
@@ -104,39 +104,36 @@ class mySmartMap extends JComponent implements KeyListener {
         if (mundo.grid[x][y] == 1) {
           g.setColor(Color.black);
           g.fillRect(
-            (int) (x * sqrWdth),
-            (int) (y * sqrHght),
-            (int) sqrWdth,
-            (int) sqrHght
-          );
+              (int) (x * sqrWdth),
+              (int) (y * sqrHght),
+              (int) sqrWdth,
+              (int) sqrHght);
         } else if (mundo.grid[x][y] == 0) {
-          //g.setColor(myWhite);
+          // g.setColor(myWhite);
 
           int col = (int) (255 * Math.sqrt(probs[x][y]));
-          if (col > 255) col = 255;
+          if (col > 255)
+            col = 255;
           g.setColor(new Color(255 - col, 255 - col, 255));
           g.fillRect(
-            (int) (x * sqrWdth),
-            (int) (y * sqrHght),
-            (int) sqrWdth,
-            (int) sqrHght
-          );
+              (int) (x * sqrWdth),
+              (int) (y * sqrHght),
+              (int) sqrWdth,
+              (int) sqrHght);
         } else if (mundo.grid[x][y] == 2) {
           g.setColor(Color.red);
           g.fillRect(
-            (int) (x * sqrWdth),
-            (int) (y * sqrHght),
-            (int) sqrWdth,
-            (int) sqrHght
-          );
+              (int) (x * sqrWdth),
+              (int) (y * sqrHght),
+              (int) sqrWdth,
+              (int) sqrHght);
         } else if (mundo.grid[x][y] == 3) {
           g.setColor(Color.green);
           g.fillRect(
-            (int) (x * sqrWdth),
-            (int) (y * sqrHght),
-            (int) sqrWdth,
-            (int) sqrHght
-          );
+              (int) (x * sqrWdth),
+              (int) (y * sqrHght),
+              (int) sqrWdth,
+              (int) sqrHght);
         }
       }
       if (y != 0) {
@@ -149,15 +146,14 @@ class mySmartMap extends JComponent implements KeyListener {
       g.drawLine((int) (x * sqrWdth), 0, (int) (x * sqrWdth), (int) winHeight);
     }
 
-    //System.out.println("repaint maxProb: " + maxProbs + "; " + mx + ", " + my);
+    // System.out.println("repaint maxProb: " + maxProbs + "; " + mx + ", " + my);
 
     g.setColor(Color.green);
     g.drawOval(
-      (int) (mx * sqrWdth) + 1,
-      (int) (my * sqrHght) + 1,
-      (int) (sqrWdth - 1.4),
-      (int) (sqrHght - 1.4)
-    );
+        (int) (mx * sqrWdth) + 1,
+        (int) (my * sqrHght) + 1,
+        (int) (sqrWdth - 1.4),
+        (int) (sqrHght - 1.4));
 
     if (gameStatus == 1) {
       g.setColor(Color.green);
@@ -170,16 +166,19 @@ class mySmartMap extends JComponent implements KeyListener {
 
   public void paintValues(Graphics g) {
     double maxVal = -99999,
-      minVal = 99999;
+        minVal = 99999;
     int mx = 0,
-      my = 0;
+        my = 0;
 
     for (int y = 0; y < mundo.height; y++) {
       for (int x = 0; x < mundo.width; x++) {
-        if (mundo.grid[x][y] != 0) continue;
+        if (mundo.grid[x][y] != 0)
+          continue;
 
-        if (vals[x][y] > maxVal) maxVal = vals[x][y];
-        if (vals[x][y] < minVal) minVal = vals[x][y];
+        if (vals[x][y] > maxVal)
+          maxVal = vals[x][y];
+        if (vals[x][y] < minVal)
+          minVal = vals[x][y];
       }
     }
     if (minVal == maxVal) {
@@ -192,91 +191,86 @@ class mySmartMap extends JComponent implements KeyListener {
         if (mundo.grid[x][y] == 1) {
           g.setColor(Color.black);
           g.fillRect(
-            (int) (x * sqrWdth) + offset,
-            (int) (y * sqrHght),
-            (int) sqrWdth,
-            (int) sqrHght
-          );
+              (int) (x * sqrWdth) + offset,
+              (int) (y * sqrHght),
+              (int) sqrWdth,
+              (int) sqrHght);
         } else if (mundo.grid[x][y] == 0) {
-          //g.setColor(myWhite);
+          // g.setColor(myWhite);
 
-          //int col = (int)(255 * Math.sqrt((vals[x][y]-minVal)/(maxVal-minVal)));
+          // int col = (int)(255 * Math.sqrt((vals[x][y]-minVal)/(maxVal-minVal)));
           int col = (int) ((255 * (vals[x][y] - minVal)) / (maxVal - minVal));
-          if (col > 255) col = 255;
+          if (col > 255)
+            col = 255;
           g.setColor(new Color(255 - col, 255 - col, 255));
           g.fillRect(
-            (int) (x * sqrWdth) + offset,
-            (int) (y * sqrHght),
-            (int) sqrWdth,
-            (int) sqrHght
-          );
+              (int) (x * sqrWdth) + offset,
+              (int) (y * sqrHght),
+              (int) sqrWdth,
+              (int) sqrHght);
         } else if (mundo.grid[x][y] == 2) {
           g.setColor(Color.red);
           g.fillRect(
-            (int) (x * sqrWdth) + offset,
-            (int) (y * sqrHght),
-            (int) sqrWdth,
-            (int) sqrHght
-          );
+              (int) (x * sqrWdth) + offset,
+              (int) (y * sqrHght),
+              (int) sqrWdth,
+              (int) sqrHght);
         } else if (mundo.grid[x][y] == 3) {
           g.setColor(Color.green);
           g.fillRect(
-            (int) (x * sqrWdth) + offset,
-            (int) (y * sqrHght),
-            (int) sqrWdth,
-            (int) sqrHght
-          );
+              (int) (x * sqrWdth) + offset,
+              (int) (y * sqrHght),
+              (int) sqrWdth,
+              (int) sqrHght);
         }
       }
       if (y != 0) {
         g.setColor(gris);
         g.drawLine(
-          offset,
-          (int) (y * sqrHght),
-          (int) winWidth + offset,
-          (int) (y * sqrHght)
-        );
+            offset,
+            (int) (y * sqrHght),
+            (int) winWidth + offset,
+            (int) (y * sqrHght));
       }
     }
     for (int x = 0; x < mundo.width; x++) {
       g.setColor(gris);
       g.drawLine(
-        (int) (x * sqrWdth) + offset,
-        0,
-        (int) (x * sqrWdth) + offset,
-        (int) winHeight
-      );
+          (int) (x * sqrWdth) + offset,
+          0,
+          (int) (x * sqrWdth) + offset,
+          (int) winHeight);
     }
   }
 
   public void keyPressed(KeyEvent e) {
-    //System.out.println("keyPressed");
+    // System.out.println("keyPressed");
   }
 
   public void keyReleased(KeyEvent e) {
-    //System.out.println("keyReleased");
+    // System.out.println("keyReleased");
   }
 
   public void keyTyped(KeyEvent e) {
     char key = e.getKeyChar();
-    //System.out.println(key);
+    // System.out.println(key);
 
     // switch (key) {
-    //     case 'i':
-    //         currentKey = NORTH;
-    //         break;
-    //     case ',':
-    //         currentKey = SOUTH;
-    //         break;
-    //     case 'j':
-    //         currentKey = WEST;
-    //         break;
-    //     case 'l':
-    //         currentKey = EAST;
-    //         break;
-    //     case 'k':
-    //         currentKey = STAY;
-    //         break;
+    // case 'i':
+    // currentKey = NORTH;
+    // break;
+    // case ',':
+    // currentKey = SOUTH;
+    // break;
+    // case 'j':
+    // currentKey = WEST;
+    // break;
+    // case 'l':
+    // currentKey = EAST;
+    // break;
+    // case 'k':
+    // currentKey = STAY;
+    // break;
     // }
 
     switch (key) {
@@ -314,7 +308,7 @@ public class theRobot extends JFrame {
   static mySmartMap myMaps; // instance of the class that draw everything to the GUI
   String mundoName;
 
-  World mundo; // mundo contains all the information about the world.  See World.java
+  World mundo; // mundo contains all the information about the world. See World.java
   double moveProb, sensorAccuracy; // stores probabilies that the robot moves in the intended direction
   // and the probability that a sonar reading is correct, respectively
 
@@ -323,11 +317,13 @@ public class theRobot extends JFrame {
   public BufferedReader sin;
   public PrintWriter sout;
 
-  // variables to store information entered through the command-line about the current scenario
-  boolean isManual = false; // determines whether you (manual) or the AI (automatic) controls the robots movements
+  // variables to store information entered through the command-line about the
+  // current scenario
+  boolean isManual = false; // determines whether you (manual) or the AI (automatic) controls the robots
+                            // movements
   boolean knownPosition = false;
   int startX = -1,
-    startY = -1;
+      startY = -1;
   int decisionDelay = 250;
 
   // store your probability map (for position of the robot in this array
@@ -338,8 +334,10 @@ public class theRobot extends JFrame {
 
   public theRobot(String _manual, int _decisionDelay) {
     // initialize variables as specified from the command-line
-    if (_manual.equals("automatic")) isManual = false;
-    else isManual = true;
+    if (_manual.equals("automatic"))
+      isManual = false;
+    else
+      isManual = true;
     decisionDelay = _decisionDelay;
 
     // get a connection to the server and get initial information about the world
@@ -362,14 +360,16 @@ public class theRobot extends JFrame {
     setVisible(true);
     setTitle("Probability and Value Maps");
 
-    doStuff(); // Function to have the robot move about its world until it gets to its goal or falls in a stairwell
+    doStuff(); // Function to have the robot move about its world until it gets to its goal or
+               // falls in a stairwell
   }
 
   // this function establishes a connection with the server and learns
-  //   1 -- which world it is in
-  //   2 -- it's transition model (specified by moveProb)
-  //   3 -- it's sensor model (specified by sensorAccuracy)
-  //   4 -- whether it's initial position is known.  if known, its position is stored in (startX, startY)
+  // 1 -- which world it is in
+  // 2 -- it's transition model (specified by moveProb)
+  // 3 -- it's sensor model (specified by sensorAccuracy)
+  // 4 -- whether it's initial position is known. if known, its position is stored
+  // in (startX, startY)
   public void initClient() {
     int portNumber = 3333;
     String host = "localhost";
@@ -393,8 +393,7 @@ public class theRobot extends JFrame {
         startX = Integer.parseInt(sin.readLine());
         startY = Integer.parseInt(sin.readLine());
         System.out.println(
-          "Robot's initial position is known: " + startX + ", " + startY
-        );
+            "Robot's initial position is known: " + startX + ", " + startY);
       } else {
         System.out.println("Robot's initial position is unknown");
       }
@@ -433,24 +432,30 @@ public class theRobot extends JFrame {
     if (knownPosition) {
       for (int y = 0; y < mundo.height; y++) {
         for (int x = 0; x < mundo.width; x++) {
-          if ((x == startX) && (y == startY)) probs[x][y] = 1.0;
-          else probs[x][y] = 0.0;
+          if ((x == startX) && (y == startY))
+            probs[x][y] = 1.0;
+          else
+            probs[x][y] = 0.0;
         }
       }
     } else {
-      // otherwise, set up a uniform prior over all the positions in the world that are open spaces
+      // otherwise, set up a uniform prior over all the positions in the world that
+      // are open spaces
       int count = 0;
 
       for (int y = 0; y < mundo.height; y++) {
         for (int x = 0; x < mundo.width; x++) {
-          if (mundo.grid[x][y] == 0) count++;
+          if (mundo.grid[x][y] == 0)
+            count++;
         }
       }
 
       for (int y = 0; y < mundo.height; y++) {
         for (int x = 0; x < mundo.width; x++) {
-          if (mundo.grid[x][y] == 0) probs[x][y] = 1.0 / count;
-          else probs[x][y] = 0;
+          if (mundo.grid[x][y] == 0)
+            probs[x][y] = 1.0 / count;
+          else
+            probs[x][y] = 0;
         }
       }
     }
@@ -470,7 +475,8 @@ public class theRobot extends JFrame {
   }
 
   double calcIntendedDir(int attemptedAction, int currDir) {
-    // For every direction it sets the probility to pretty low except the intended direction
+    // For every direction it sets the probility to pretty low except the intended
+    // direction
 
     if (currDir == attemptedAction) {
       return moveProb;
@@ -480,11 +486,10 @@ public class theRobot extends JFrame {
   }
 
   void doScatterTransitionForPos(
-    double[][] newProbs,
-    int currX,
-    int currY,
-    int attemptedAction
-  ) {
+      double[][] newProbs,
+      int currX,
+      int currY,
+      int attemptedAction) {
     // double[] singleMoveProbs = new double[5];
     // int currX = prevX;
     // int currY = prevY;
@@ -492,7 +497,8 @@ public class theRobot extends JFrame {
     for (int i = 0; i < 5; i++) {
       double probIntended = calcIntendedDir(attemptedAction, i);
 
-      // // Check to make sure move is legal, if so, then use the probIntended, otherwise set to 0
+      // // Check to make sure move is legal, if so, then use the probIntended,
+      // otherwise set to 0
       switch (i) {
         case NORTH:
           // Is legal move, not a wall
@@ -504,10 +510,8 @@ public class theRobot extends JFrame {
           break;
         case SOUTH:
           // Is legal move, not a wall
-          if (
-            currY + 1 < mundo.grid[0].length &&
-            mundo.grid[currX][currY + 1] != 1
-          ) {
+          if (currY + 1 < mundo.grid[0].length &&
+              mundo.grid[currX][currY + 1] != 1) {
             newProbs[currX][currY + 1] += probIntended * probs[currX][currY];
           } else {
             newProbs[currX][currY] += probIntended * probs[currX][currY];
@@ -515,9 +519,7 @@ public class theRobot extends JFrame {
           break;
         case EAST:
           // Is legal move, not a wall
-          if (
-            currX + 1 < mundo.grid.length && mundo.grid[currX + 1][currY] != 1
-          ) {
+          if (currX + 1 < mundo.grid.length && mundo.grid[currX + 1][currY] != 1) {
             newProbs[currX + 1][currY] += probIntended * probs[currX][currY];
           } else {
             newProbs[currX][currY] += probIntended * probs[currX][currY];
@@ -536,19 +538,19 @@ public class theRobot extends JFrame {
           break;
       }
 
-      // // Check to make sure move is legal, if so, then use the probIntended, otherwise set to 0
+      // // Check to make sure move is legal, if so, then use the probIntended,
+      // otherwise set to 0
       // if (mundo.grid[prevX][prevY] != 1) {
-      //   newProbs[currX][currY] *= probIntended;
+      // newProbs[currX][currY] *= probIntended;
       // }
     }
   }
 
   void doSensorForPos(
-    double[][] newProbs,
-    int currX,
-    int currY,
-    String sonars
-  ) {
+      double[][] newProbs,
+      int currX,
+      int currY,
+      String sonars) {
     for (int i = 0; i < 4; i++) {
       int newX = currX;
       int newY = currY;
@@ -587,9 +589,9 @@ public class theRobot extends JFrame {
 
     // // If sensor and groud truth line up
     // if (sensorNorth == actualNorth) {
-    //   newProbs[currX][currY] *= sensorAccuracy;
+    // newProbs[currX][currY] *= sensorAccuracy;
     // } else {
-    //   newProbs[currX][currY] *= 1 - sensorAccuracy;
+    // newProbs[currX][currY] *= 1 - sensorAccuracy;
     // }
 
     // boolean sensorSouth = sonars.charAt(1) == '1';
@@ -597,9 +599,9 @@ public class theRobot extends JFrame {
 
     // // If sensor and groud truth line up
     // if (sensorSouth == actualSouth) {
-    //   newProbs[currX][currY] *= sensorAccuracy;
+    // newProbs[currX][currY] *= sensorAccuracy;
     // } else {
-    //   newProbs[currX][currY] *= 1 - sensorAccuracy;
+    // newProbs[currX][currY] *= 1 - sensorAccuracy;
     // }
 
     // boolean sensorEast = sonars.charAt(2) == '1';
@@ -607,9 +609,9 @@ public class theRobot extends JFrame {
 
     // // If sensor and groud truth line up
     // if (sensorEast == actualEast) {
-    //   newProbs[currX][currY] *= sensorAccuracy;
+    // newProbs[currX][currY] *= sensorAccuracy;
     // } else {
-    //   newProbs[currX][currY] *= 1 - sensorAccuracy;
+    // newProbs[currX][currY] *= 1 - sensorAccuracy;
     // }
 
     // boolean sensorWest = sonars.charAt(3) == '1';
@@ -617,16 +619,19 @@ public class theRobot extends JFrame {
 
     // // If sensor and groud truth line up
     // if (sensorWest == actualWest) {
-    //   newProbs[currX][currY] *= sensorAccuracy;
+    // newProbs[currX][currY] *= sensorAccuracy;
     // } else {
-    //   newProbs[currX][currY] *= 1 - sensorAccuracy;
+    // newProbs[currX][currY] *= 1 - sensorAccuracy;
     // }
   }
 
-  // TODO (FILTERING ASSIGNMENT): update the probabilities of where the AI thinks it is based on the action selected and the new sonar readings
-  //       To do this, you should update the 2D-array "probs"
-  // Note: sonars is a bit string with four characters, specifying the sonar reading in the direction of North, South, East, and West
-  //       For example, the sonar string 1001, specifies that the sonars found a wall in the North and West directions, but not in the South and East directions
+  // TODO (FILTERING ASSIGNMENT): update the probabilities of where the AI thinks
+  // it is based on the action selected and the new sonar readings
+  // To do this, you should update the 2D-array "probs"
+  // Note: sonars is a bit string with four characters, specifying the sonar
+  // reading in the direction of North, South, East, and West
+  // For example, the sonar string 1001, specifies that the sonars found a wall in
+  // the North and West directions, but not in the South and East directions
   void updateProbabilities(int action, String sonars) {
     // TODO (FILTERING ASSIGNMENT): add your filtering code here
 
@@ -639,7 +644,8 @@ public class theRobot extends JFrame {
 
     for (int y = 0; y < mundo.height; y++) {
       for (int x = 0; x < mundo.width; x++) {
-        // TODO (FILTERING ASSIGNMENT): update probs[x][y] based on the action and the sonar readings
+        // TODO (FILTERING ASSIGNMENT): update probs[x][y] based on the action and the
+        // sonar readings
         doScatterTransitionForPos(newProbs, x, y, action);
       }
     }
@@ -671,7 +677,8 @@ public class theRobot extends JFrame {
     }
 
     // Source - https://stackoverflow.com/a/5617045
-    // Posted by Louis Rhys, modified by community. See post 'Timeline' for change history
+    // Posted by Louis Rhys, modified by community. See post 'Timeline' for change
+    // history
     // Retrieved 2026-10-08, License - CC BY-SA 3.0
     // Deep copy a 2d array
     for (int i = 0; i < newProbs.length; i++) {
@@ -685,31 +692,42 @@ public class theRobot extends JFrame {
   }
 
   // This is the function to implement to make the robot move using your AI;
-  // (FILTERING ASSIGNMENT): You do NOT need to write this function yet; it can remain as is
+  // (FILTERING ASSIGNMENT): You do NOT need to write this function yet; it can
+  // remain as is
   int automaticAction() {
-    // TODO (MDP ASSIGNMENT): automatically determine the action the robot should take
+    // TODO (MDP ASSIGNMENT): automatically determine the action the robot should
+    // take
     return STAY; // default action for now
+  }
+
+  void valueIteration() {
+
   }
 
   void doStuff() {
     int action;
 
-    //valueIteration();  // TODO (MDP ASSIGNMENT): uncomment, implement function, and use to compute your value function
+    valueIteration(); // TODO (MDP ASSIGNMENT): uncomment, implement function, and use to compute your
+                      // value function
     initializeProbabilities(); // Initializes the location (probability) map
 
     while (true) {
       try {
-        if (isManual) action = getHumanAction();
+        if (isManual)
+          action = getHumanAction();
         // get the action selected by the user (from the keyboard)
-        else action = automaticAction(); // TODO (MDP ASSIGNMENT): get the action selected by your AI;
+        else
+          action = automaticAction(); // TODO (MDP ASSIGNMENT): get the action selected by your AI;
 
         sout.println(action); // send the action to the Server
 
         // get sonar readings after the robot moves
         String sonars = sin.readLine();
-        //System.out.println("Sonars: " + sonars); // Uncomment if you want to see what the sonar readings are at each time step
+        // System.out.println("Sonars: " + sonars); // Uncomment if you want to see what
+        // the sonar readings are at each time step
 
-        updateProbabilities(action, sonars); // TODO (FILTERING ASSIGNMENT): this function should update the probabilities of where the AI thinks it is
+        updateProbabilities(action, sonars); // TODO (FILTERING ASSIGNMENT): this function should update the
+                                             // probabilities of where the AI thinks it is
 
         if (sonars.length() > 4) {
           // check to see if the robot has reached its goal or fallen down stairs
@@ -728,7 +746,8 @@ public class theRobot extends JFrame {
           // was not at the goal or in a stairwell
         }
         Thread.sleep(decisionDelay); // delay that is useful to see what is happening when the AI selects actions
-        // decisionDelay is specified by the send command-line argument, which is given in milliseconds
+        // decisionDelay is specified by the send command-line argument, which is given
+        // in milliseconds
       } catch (IOException e) {
         System.out.println(e);
       } catch (InterruptedException ex) {
