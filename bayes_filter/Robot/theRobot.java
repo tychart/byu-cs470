@@ -780,6 +780,32 @@ public class theRobot extends JFrame {
   int automaticAction() {
     // TODO (MDP ASSIGNMENT): automatically determine the action the robot should
     // take
+
+    double[] expectedValue = new double[actions.length];
+
+    for (int action : actions) {}
+
+    for (int x = 0; x < Vs[0].length; x++) {
+      for (int y = 0; y < Vs.length; y++) {
+
+        double maxVal = Double.NEGATIVE_INFINITY;
+        int bestAction = -1;
+
+        for (int action : actions) {
+          int[] moved = getMoves(x, y, action);
+
+          double actionVal = this.Vs[moved[0]][moved[1]];
+
+          if (actionVal > maxVal) {
+            maxVal = actionVal;
+            bestAction = action;
+          }
+        }
+
+        maxVal * VALUE?
+      }
+    }
+
     return STAY; // default action for now
   }
 
@@ -860,39 +886,50 @@ public class theRobot extends JFrame {
 
       double intendedDir = calcIntendedDir(action, outcome);
 
-      int movex = 0;
-      int movey = 0;
+      int[] moved = getMoves(x, y, outcome);
 
-      switch (outcome) {
-        case NORTH:
-          movey--;
-          break;
-        case SOUTH:
-          movey++;
-          break;
-        case EAST:
-          movex++;
-          break;
-        case WEST:
-          movex--;
-          break;
-        case STAY:
-          break;
+      if (moved[0] < 0 ||
+          moved[1] < 0 ||
+          moved[0] >= mundo.width ||
+          moved[1] >= mundo.height ||
+          this.mundo.grid[moved[0]][moved[y]] == WALL) {
+        moved[0] = x; // Out of bounds or wall, dosn't move
+        moved[1] = y;
       }
 
-      if (x + movex < 0 ||
-          y + movey < 0 ||
-          x + movex >= mundo.width ||
-          y + movey >= mundo.height ||
-          this.mundo.grid[x + movex][y + movey] == WALL) {
-        movex = 0; // Out of bounds or wall, dosn't move
-        movey = 0;
-      }
-
-      expected += intendedDir * this.Vs[x + movex][y + movey];
+      expected += intendedDir * this.Vs[moved[0]][moved[1]];
 
     }
     return expected;
+  }
+
+  int[] getMoves(int x, int y, int action) {
+    int movex = 0;
+    int movey = 0;
+
+    switch (action) {
+      case NORTH:
+        movey--;
+        break;
+      case SOUTH:
+        movey++;
+        break;
+      case EAST:
+        movex++;
+        break;
+      case WEST:
+        movex--;
+        break;
+      case STAY:
+        break;
+    }
+
+    int[] outArr = new int[2];
+
+    outArr[0] = movex + x;
+    outArr[1] = movey + y;
+
+    return outArr;
   }
 
   void doStuff() {
