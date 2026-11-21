@@ -12,6 +12,7 @@ SENSOR_PROB=1     # server: probability of a correct sonar reading
 DELAY=0           # robot: decision delay in milliseconds
 KNOWN=unknown     # server: whether the robot's starting position is given (known|unknown)
 MODE=manual       # robot: who picks the moves (manual|automatic)
+APPROACH=1        # robot: action-selection approach (1 = expected utility, 2 = homing sequence)
 
 usage() {
     cat <<EOF
@@ -29,6 +30,8 @@ Options:
   -u, --unknown         Hide the starting position (Scenario 2, default)
   -a, --auto            Robot picks its own moves (automaticAction())
   -c, --manual          You pick the moves with the keyboard (default)
+  -A, --approach N      Action-selection approach: 1 = expected utility (default),
+                        2 = homing sequence
   -l, --list            List the available maps and exit
   -h, --help            Show this help
 
@@ -59,6 +62,7 @@ while [ $# -gt 0 ]; do
         -u|--unknown)     KNOWN=unknown; shift ;;
         -a|--auto)        MODE=automatic; shift ;;
         -c|--manual)      MODE=manual;    shift ;;
+        -A|--approach)    need_value "$1" $#; APPROACH=$2;    shift 2 ;;
         -l|--list)        list_maps; exit 0 ;;
         -h|--help)        usage; exit 0 ;;
         -*) echo "Error: unknown option '$1'" >&2; usage >&2; exit 2 ;;
@@ -107,5 +111,5 @@ SERVER_PID=$!
 
 # Compile only the robot, then run it in the foreground.
 javac Robot/*.java
-#   java theRobot <manual|automatic> <decisionDelayMs>
-java -cp "Robot:Server" theRobot "$MODE" "$DELAY"
+#   java theRobot <manual|automatic> <decisionDelayMs> <approach>
+java -cp "Robot:Server" theRobot "$MODE" "$DELAY" "$APPROACH"

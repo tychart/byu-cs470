@@ -389,6 +389,12 @@ public class theRobot extends JFrame {
   public static final double REWARD_STAIRWAY = -100000.0;
   public static final double REWARD_GOAL = 10.0;
 
+  int stepCount = 0;
+  int lastAction = 0;
+
+  // 1 = expected utility (Approach 1), 2 = homing sequence (Approach 2)
+  int approach = 1;
+
   Color bkgroundColor = new Color(230, 230, 230);
 
   static mySmartMap myMaps; // instance of the class that draw everything to the GUI
@@ -425,6 +431,9 @@ public class theRobot extends JFrame {
     else
       isManual = true;
     decisionDelay = _decisionDelay;
+
+    // select the action-selection approach (-Dapproach=2 or 3rd command-line arg)
+    approach = Integer.parseInt(System.getProperty("approach", "1"));
 
     // get a connection to the server and get initial information about the world
     initClient();
@@ -812,8 +821,33 @@ public class theRobot extends JFrame {
   }
 
   int automaticAction2() {
-    if (stepCount < 4 && maxBelief() < 0.6)
-      return OPENING[stepCount];
+    int outAction = -1;
+
+    int homeingActionLimit = 5;
+
+    if (this.stepCount < homeingActionLimit && maxBelief() < 0.6) {
+      if (this.lastAction == SOUTH) {
+        outAction = EAST;
+      } else {
+        outAction = SOUTH;
+      }
+    } else {
+      outAction = automaticAction();
+    }
+    this.stepCount++;
+
+    this.lastAction = outAction;
+    return outAction;
+  }
+
+  double maxBelief() {
+    double best = 0.0;
+    for (int x = 0; x < mundo.width; x++) {
+      for (int y = 0; y < mundo.height; y++) {
+        best = Math.max(best, probs[x][y]);
+      }
+    }
+    return best;
   }
 
   void valueIteration() {
@@ -944,7 +978,7 @@ public class theRobot extends JFrame {
           action = getHumanAction();
         // get the action selected by the user (from the keyboard)
         else
-          action = automaticAction(); // TODO (MDP ASSIGNMENT): get the action selected by your AI;
+          action = (approach == 2) ? automaticAction2() : automaticAction();
 
         sout.println(action); // send the action to the Server
 
@@ -983,8 +1017,13 @@ public class theRobot extends JFrame {
     }
   }
 
-  // java theRobot [manual/automatic] [delay]
+  // java theRobot [manual/automatic] [delay] [approach]
   public static void main(String[] args) {
+    // Optional 3rd argument selects the action-selection approach (1 or 2).
+    // -Dapproach=2 on the java command line works too.
+    if (args.length > 2) {
+      System.setProperty("approach", args[2]);
+    }
     theRobot robot = new theRobot(args[0], Integer.parseInt(args[1])); // starts up the robot
   }
 }
