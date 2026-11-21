@@ -2,6 +2,7 @@
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.lang.*;
@@ -101,23 +102,24 @@ public class BayesWorld extends JFrame {
         rand = new Random();
     
         mundo = new World(fnombre);
-        int width = 500;
-        int height = 500;
+        int width = 700;
+        int height = 700;
         moveProb = _moveProb;
         sensorAccuracy = _sensorAccuracy;
         
         initRobotPosition();
     
-        int bar = 20;
-        setSize(width,height+bar);
         getContentPane().setBackground(bkgroundColor);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(0, 0, width, height+bar);
         canvas = new MyCanvas(width, height, mundo, xpos, ypos);
+        canvas.setPreferredSize(new Dimension(width, height));
         getContentPane().add(canvas);
-        
-        setVisible(true);
+
+        // pack() sizes the window from the canvas' preferred size plus decorations, so
+        // the drawing area is exactly width x height and nothing is clipped
         setTitle("BayesWorld");
+        pack();
+        setVisible(true);
         
         getConnection(3333, fnombre, _known);
         survive();

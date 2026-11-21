@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.*;
@@ -52,6 +53,16 @@ class mySmartMap extends JComponent implements KeyListener {
     gameStatus = 0;
   }
 
+  // Warm ramp used by the probability and value maps: amber at the low end fading to
+  // white at the high end, so the blue belief overlay stays readable on top of it
+  static Color heatColor(double t) {
+    if (t < 0)
+      t = 0;
+    if (t > 1)
+      t = 1;
+    return new Color(255, (int) (140 + 115 * t), (int) (255 * t));
+  }
+
   public void addNotify() {
     super.addNotify();
     requestFocus();
@@ -89,7 +100,7 @@ class mySmartMap extends JComponent implements KeyListener {
 
   public void paint(Graphics g) {
     paintProbs(g);
-    // paintValues(g);
+    paintValues(g);
   }
 
   public void paintProbs(Graphics g) {
@@ -116,7 +127,7 @@ class mySmartMap extends JComponent implements KeyListener {
           int col = (int) (255 * Math.sqrt(probs[x][y]));
           if (col > 255)
             col = 255;
-          g.setColor(new Color(255 - col, 255 - col, 255));
+          g.setColor(heatColor(col / 255.0));
           g.fillRect(
               (int) (x * sqrWdth),
               (int) (y * sqrHght),
@@ -187,7 +198,7 @@ class mySmartMap extends JComponent implements KeyListener {
       maxVal = minVal + 1;
     }
 
-    int offset = winWidth + 20;
+    int offset = 0; // instructor scaffold uses winWidth + 20, which draws off-screen
     for (int y = 0; y < mundo.height; y++) {
       for (int x = 0; x < mundo.width; x++) {
         if (mundo.grid[x][y] == 1) {
@@ -204,7 +215,7 @@ class mySmartMap extends JComponent implements KeyListener {
           int col = (int) ((255 * (vals[x][y] - minVal)) / (maxVal - minVal));
           if (col > 255)
             col = 255;
-          g.setColor(new Color(255 - col, 255 - col, 255));
+          g.setColor(heatColor(col / 255.0));
           g.fillRect(
               (int) (x * sqrWdth) + offset,
               (int) (y * sqrHght),
@@ -242,6 +253,68 @@ class mySmartMap extends JComponent implements KeyListener {
           0,
           (int) (x * sqrWdth) + offset,
           (int) winHeight);
+    }
+
+    // paintValues() covers the belief overlay that paintProbs() draws, so redraw it here.
+    // Confidence is drawn as a blue marker whose radius and opacity grow with the
+    // probability of that cell, so a certain robot is a solid dot and a spread-out
+    // belief is a cluster of faint partial circles.
+    double maxProb = 0.0;
+    for (int y = 0; y < mundo.height; y++) {
+      for (int x = 0; x < mundo.width; x++) {
+        if (probs[x][y] > maxProb)
+          maxProb = probs[x][y];
+      }
+    }
+
+    if (maxProb > 0) {
+      double maxRadius = (Math.min(sqrWdth, sqrHght) - 4) / 2;
+
+      // A cell's dot is sized by its absolute probability, not its probability relative
+      // to the best guess. That way a uniform belief draws a small dot in every open
+      // cell (visibly "no idea"), and a confident filter draws one big dot. Scaling by
+      // the relative probability alone would make a uniform belief look certain,
+      // because every cell would tie for "most likely".
+      for (int y = 0; y < mundo.height; y++) {
+        for (int x = 0; x < mundo.width; x++) {
+          if (probs[x][y] <= 0)
+            continue;
+
+          double rel = probs[x][y] / maxProb;
+          int alpha = (int) (70 + 185 * Math.sqrt(rel));
+          g.setColor(new Color(0, 0, 255, alpha));
+
+          int radius = (int) Math.round(maxRadius * Math.sqrt(probs[x][y]));
+          if (radius < 2)
+            radius = 2;
+
+          g.fillOval(
+              (int) (x * sqrWdth + sqrWdth / 2) + offset - radius,
+              (int) (y * sqrHght + sqrHght / 2) - radius,
+              2 * radius,
+              2 * radius);
+        }
+      }
+
+      // Ring the most likely cell so it is easy to spot at a glance
+      int estX = 0,
+          estY = 0;
+      maxProb = 0.0;
+      for (int y = 0; y < mundo.height; y++) {
+        for (int x = 0; x < mundo.width; x++) {
+          if (probs[x][y] > maxProb) {
+            maxProb = probs[x][y];
+            estX = x;
+            estY = y;
+          }
+        }
+      }
+      g.setColor(Color.blue);
+      g.drawOval(
+          (int) (estX * sqrWdth) + offset + 1,
+          (int) (estY * sqrHght) + 1,
+          (int) (sqrWdth - 1.4),
+          (int) (sqrHght - 1.4));
     }
   }
 
@@ -357,18 +430,19 @@ public class theRobot extends JFrame {
     mundo = new World(mundoName);
 
     // set up the GUI that displays the information you compute
-    int width = 500;
-    int height = 500;
-    int bar = 20;
-    setSize(width, height + bar);
+    int width = 700;
+    int height = 700;
     getContentPane().setBackground(bkgroundColor);
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    setBounds(0, 0, width, height + bar);
     myMaps = new mySmartMap(width, height, mundo);
+    myMaps.setPreferredSize(new Dimension(width, height));
     getContentPane().add(myMaps);
 
-    setVisible(true);
+    // pack() sizes the window from the canvas' preferred size plus decorations, so
+    // the drawing area is exactly width x height and nothing is clipped
     setTitle("Probability and Value Maps");
+    pack();
+    setVisible(true);
 
     doStuff(); // Function to have the robot move about its world until it gets to its goal or
                // falls in a stairwell

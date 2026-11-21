@@ -10,12 +10,14 @@ WORLD=mundo_maze  # map under Mundos/ (the .txt suffix is optional)
 MOVE_PROB=1       # server: probability the robot moves in its intended direction
 SENSOR_PROB=1     # server: probability of a correct sonar reading
 DELAY=0           # robot: decision delay in milliseconds
+KNOWN=unknown     # server: whether the robot's starting position is given (known|unknown)
+MODE=manual       # robot: who picks the moves (manual|automatic)
 
 usage() {
     cat <<EOF
 Usage: $(basename "$0") [map] [options]
 
-Starts the BayesWorld server, then runs theRobot in manual mode.
+Starts the BayesWorld server, then runs theRobot in manual or automatic mode.
 
 Options:
   -w, --world MAP       Map under Mundos/ to load, e.g. mundo_maze or
@@ -23,6 +25,10 @@ Options:
   -m, --move-prob P     Motor model: probability of moving as intended (default: $MOVE_PROB)
   -s, --sensor-prob P   Sensor model: probability of a correct sonar reading (default: $SENSOR_PROB)
   -d, --delay MS        Robot decision delay in milliseconds (default: $DELAY)
+  -k, --known           Tell the robot its starting position (Scenario 1)
+  -u, --unknown         Hide the starting position (Scenario 2, default)
+  -a, --auto            Robot picks its own moves (automaticAction())
+  -c, --manual          You pick the moves with the keyboard (default)
   -l, --list            List the available maps and exit
   -h, --help            Show this help
 
@@ -49,6 +55,10 @@ while [ $# -gt 0 ]; do
         -m|--move-prob)   need_value "$1" $#; MOVE_PROB=$2;   shift 2 ;;
         -s|--sensor-prob) need_value "$1" $#; SENSOR_PROB=$2; shift 2 ;;
         -d|--delay)       need_value "$1" $#; DELAY=$2;       shift 2 ;;
+        -k|--known)       KNOWN=known;   shift ;;
+        -u|--unknown)     KNOWN=unknown; shift ;;
+        -a|--auto)        MODE=automatic; shift ;;
+        -c|--manual)      MODE=manual;    shift ;;
         -l|--list)        list_maps; exit 0 ;;
         -h|--help)        usage; exit 0 ;;
         -*) echo "Error: unknown option '$1'" >&2; usage >&2; exit 2 ;;
@@ -89,7 +99,7 @@ trap cleanup EXIT INT TERM
 # Compile the server and start it in the background.
 #   java BayesWorld <world> <moveProb> <sensorAccuracy> <known|unknown>
 javac Server/*.java
-java -cp Server BayesWorld "$WORLD" "$MOVE_PROB" "$SENSOR_PROB" unknown &
+java -cp Server BayesWorld "$WORLD" "$MOVE_PROB" "$SENSOR_PROB" "$KNOWN" &
 SERVER_PID=$!
 
 # Give it a moment to bind port 3333.
@@ -98,4 +108,4 @@ SERVER_PID=$!
 # Compile only the robot, then run it in the foreground.
 javac Robot/*.java
 #   java theRobot <manual|automatic> <decisionDelayMs>
-java -cp "Robot:Server" theRobot manual "$DELAY"
+java -cp "Robot:Server" theRobot "$MODE" "$DELAY"
