@@ -385,6 +385,10 @@ public class theRobot extends JFrame {
   public static final int STAIRS = 2;
   public static final int GOAL = 3;
 
+  public static final double REWARD_EMPTY = -0.2;
+  public static final double REWARD_STAIRWAY = -100000.0;
+  public static final double REWARD_GOAL = 10.0;
+
   Color bkgroundColor = new Color(230, 230, 230);
 
   static mySmartMap myMaps; // instance of the class that draw everything to the GUI
@@ -781,32 +785,35 @@ public class theRobot extends JFrame {
     // TODO (MDP ASSIGNMENT): automatically determine the action the robot should
     // take
 
-    double[] expectedValue = new double[actions.length];
+    double[] expectedValues = new double[theRobot.actions.length];
 
-    for (int action : actions) {}
+    for (int action : theRobot.actions) {
 
-    for (int x = 0; x < Vs[0].length; x++) {
-      for (int y = 0; y < Vs.length; y++) {
-
-        double maxVal = Double.NEGATIVE_INFINITY;
-        int bestAction = -1;
-
-        for (int action : actions) {
-          int[] moved = getMoves(x, y, action);
-
-          double actionVal = this.Vs[moved[0]][moved[1]];
-
-          if (actionVal > maxVal) {
-            maxVal = actionVal;
-            bestAction = action;
-          }
+      for (int x = 0; x < this.mundo.width; x++) {
+        for (int y = 0; y < this.mundo.height; y++) {
+          expectedValues[action] += this.probs[x][y] * this.expectedValue(x, y, action);
         }
-
-        maxVal * VALUE?
       }
     }
 
-    return STAY; // default action for now
+    double bestVal = Double.NEGATIVE_INFINITY;
+    int bestAction = -1;
+
+    for (int i = 0; i < theRobot.actions.length; i++) {
+      if (expectedValues[i] > bestVal) {
+        bestVal = expectedValues[i];
+        bestAction = i;
+      }
+
+    }
+
+    return bestAction;
+
+  }
+
+  int automaticAction2() {
+    if (stepCount < 4 && maxBelief() < 0.6)
+      return OPENING[stepCount];
   }
 
   void valueIteration() {
@@ -816,14 +823,6 @@ public class theRobot extends JFrame {
 
     double gamma = 1.0; // Also can compare with gamma = 0.99
     double epsilon = 0.001; // Is the threshold with maxDelta
-
-    // Declare a Map with String keys and Integer values
-    Map<String, Double> rewards = new HashMap<>();
-
-    // Add or update key-value pairs
-    rewards.put("empty", -0.2);
-    rewards.put("stairway", -10.0);
-    rewards.put("goal", 10.0);
 
     double maxDelta = 1;
 
@@ -841,21 +840,21 @@ public class theRobot extends JFrame {
 
           switch (mundo.grid[x][y]) {
             case OPEN:
-              rewardHere = rewards.get("empty");
+              rewardHere = REWARD_EMPTY;
               break;
 
             case STAIRS:
-              this.Vs[x][y] = rewards.get("stairway");
+              this.Vs[x][y] = REWARD_STAIRWAY;
               continue;
 
             case GOAL:
-              this.Vs[x][y] = rewards.get("goal");
+              this.Vs[x][y] = REWARD_GOAL;
               continue;
           }
 
           for (int action : theRobot.actions) { // Action the robot tries to take
 
-            double expected = expectedValue(x, y, action, rewards);
+            double expected = expectedValue(x, y, action);
 
             // Find the best overall action and eventually return the value assosiated with
             // that
@@ -879,7 +878,7 @@ public class theRobot extends JFrame {
 
   }
 
-  double expectedValue(int x, int y, int action, Map<String, Double> rewards) {
+  double expectedValue(int x, int y, int action) {
 
     double expected = 0.0;
     for (int outcome : theRobot.actions) { // Action the robot actually takes
@@ -892,7 +891,7 @@ public class theRobot extends JFrame {
           moved[1] < 0 ||
           moved[0] >= mundo.width ||
           moved[1] >= mundo.height ||
-          this.mundo.grid[moved[0]][moved[y]] == WALL) {
+          this.mundo.grid[moved[0]][moved[1]] == WALL) {
         moved[0] = x; // Out of bounds or wall, dosn't move
         moved[1] = y;
       }
