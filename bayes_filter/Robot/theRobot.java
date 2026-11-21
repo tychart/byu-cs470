@@ -715,8 +715,8 @@ public class theRobot extends JFrame {
 
     this.Vs = new double[mundo.width][mundo.height];
 
-    double gamma = 1.0;
-    double epsilon = 1.0;
+    double gamma = 1.0; // Also can compare with gamma = 0.99
+    double epsilon = 0.001; // Is the threshold with maxDelta
 
     // Declare a Map with String keys and Integer values
     Map<String, Double> rewards = new HashMap<>();
@@ -726,32 +726,63 @@ public class theRobot extends JFrame {
     rewards.put("stairway", -10.0);
     rewards.put("goal", 10.0);
 
-    double threshold = 0.001;
+    double maxDelta = 1;
 
-    double changed = 1;
+    while (maxDelta > epsilon) {
+      maxDelta = 0; // Set total delta to 0 to start counting in the loop
 
-    while (changed > threshold) {
       for (int x = 0; x < Vs[0].length; x++) {
         for (int y = 0; y < Vs.length; y++) {
           if (mundo.grid[x][y] == WALL) {
-            break; // Skip if it is a wall, no value
+            continue; // Skip if it is a wall, no value
+          }
+
+          double bestExpected = Double.NEGATIVE_INFINITY;
+          double rewardHere = 0;
+
+          switch (mundo.grid[x][y]) {
+            case OPEN:
+              rewardHere = rewards.get("empty");
+              break;
+
+            case STAIRS:
+              this.Vs[x][y] = rewards.get("stairway");
+              continue;
+
+            case GOAL:
+              this.Vs[x][y] = rewards.get("goal");
+              continue;
           }
 
           for (int action : theRobot.actions) { // Action the robot tries to take
+
             double expected = expectedValue(x, y, action, rewards);
 
+            // Find the best overall action and eventually return the value assosiated with
+            // that
+            bestExpected = Math.max(bestExpected, expected);
           }
+
+          double prevValue = this.Vs[x][y];
+
+          this.Vs[x][y] = rewardHere + gamma * bestExpected;
+
+          double valueDelta = Math.abs(prevValue - this.Vs[x][y]);
+
+          maxDelta = Math.max(maxDelta, valueDelta);
 
         }
       }
 
     }
 
+    myMaps.updateValues(this.Vs);
+
   }
 
   double expectedValue(int x, int y, int action, Map<String, Double> rewards) {
-    double expected = 0.0;
 
+    double expected = 0.0;
     for (int outcome : theRobot.actions) { // Action the robot actually takes
 
       double intendedDir = calcIntendedDir(action, outcome);
@@ -779,31 +810,15 @@ public class theRobot extends JFrame {
       if (x + movex < 0 ||
           y + movey < 0 ||
           x + movex >= mundo.width ||
-          y + movey >= mundo.height) {
-        break; // Out of bounds / outer wall, skip
+          y + movey >= mundo.height ||
+          this.mundo.grid[x + movex][y + movey] == WALL) {
+        movex = 0; // Out of bounds or wall, dosn't move
+        movey = 0;
       }
 
-      switch (mundo.grid[x + movex][y + movey]) {
-        case OPEN:
-          expected += rewards.get("empty");
-          break;
+      expected += intendedDir * this.Vs[x + movex][y + movey];
 
-        case WALL:
-          break; // Skip if it is a wall, no value
-
-        case STAIRS:
-          expected += rewards.get("stairway");
-          ;
-          break;
-
-        case GOAL:
-          expected += rewards.get("goal");
-          ;
-          break;
-
-      }
     }
-
     return expected;
   }
 
