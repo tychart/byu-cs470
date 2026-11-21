@@ -53,8 +53,9 @@ class mySmartMap extends JComponent implements KeyListener {
     gameStatus = 0;
   }
 
-  // Warm ramp used by the probability and value maps: amber at the low end fading to
-  // white at the high end, so the blue belief overlay stays readable on top of it
+  // Warm ramp for the value map: white at the low end (far from the goal, near
+  // the
+  // stairs) deepening to amber as values increase
   static Color heatColor(double t) {
     if (t < 0)
       t = 0;
@@ -127,7 +128,7 @@ class mySmartMap extends JComponent implements KeyListener {
           int col = (int) (255 * Math.sqrt(probs[x][y]));
           if (col > 255)
             col = 255;
-          g.setColor(heatColor(col / 255.0));
+          g.setColor(new Color(255 - col, 255 - col, 255));
           g.fillRect(
               (int) (x * sqrWdth),
               (int) (y * sqrHght),
@@ -160,13 +161,6 @@ class mySmartMap extends JComponent implements KeyListener {
     }
 
     // System.out.println("repaint maxProb: " + maxProbs + "; " + mx + ", " + my);
-
-    g.setColor(Color.green);
-    g.drawOval(
-        (int) (mx * sqrWdth) + 1,
-        (int) (my * sqrHght) + 1,
-        (int) (sqrWdth - 1.4),
-        (int) (sqrHght - 1.4));
 
     if (gameStatus == 1) {
       g.setColor(Color.green);
@@ -215,7 +209,8 @@ class mySmartMap extends JComponent implements KeyListener {
           int col = (int) ((255 * (vals[x][y] - minVal)) / (maxVal - minVal));
           if (col > 255)
             col = 255;
-          g.setColor(heatColor(col / 255.0));
+          // darker amber means a higher value, i.e. closer to the goal
+          g.setColor(heatColor(1.0 - col / 255.0));
           g.fillRect(
               (int) (x * sqrWdth) + offset,
               (int) (y * sqrHght),
@@ -255,67 +250,71 @@ class mySmartMap extends JComponent implements KeyListener {
           (int) winHeight);
     }
 
-    // paintValues() covers the belief overlay that paintProbs() draws, so redraw it here.
-    // Confidence is drawn as a blue marker whose radius and opacity grow with the
-    // probability of that cell, so a certain robot is a solid dot and a spread-out
-    // belief is a cluster of faint partial circles.
+    paintBelief(g, offset);
+  }
+
+  // Belief overlay: a blue marker per open cell whose radius and opacity grow
+  // with that
+  // cell's probability. Sized from the absolute probability (not relative to the
+  // best
+  // guess) so a uniform belief draws a small dot in every open cell -- visibly
+  // "no idea"
+  // -- and a confident filter draws one large dot. A uniform belief would look
+  // certain
+  // if dots were sized by relative probability, since every cell would tie for
+  // best.
+  void paintBelief(Graphics g, int offset) {
     double maxProb = 0.0;
-    for (int y = 0; y < mundo.height; y++) {
-      for (int x = 0; x < mundo.width; x++) {
+    for (int y = 0; y < mundo.height; y++)
+      for (int x = 0; x < mundo.width; x++)
         if (probs[x][y] > maxProb)
           maxProb = probs[x][y];
+
+    if (maxProb <= 0)
+      return;
+
+    double maxRadius = (Math.min(sqrWdth, sqrHght) - 4) / 2;
+
+    for (int y = 0; y < mundo.height; y++) {
+      for (int x = 0; x < mundo.width; x++) {
+        if (probs[x][y] <= 0)
+          continue;
+
+        double rel = probs[x][y] / maxProb;
+        int alpha = (int) (70 + 185 * Math.sqrt(rel));
+        g.setColor(new Color(0, 0, 255, alpha));
+
+        int radius = (int) Math.round(maxRadius * Math.sqrt(probs[x][y]));
+        if (radius < 2)
+          radius = 2;
+
+        g.fillOval(
+            (int) (x * sqrWdth + sqrWdth / 2) + offset - radius,
+            (int) (y * sqrHght + sqrHght / 2) - radius,
+            2 * radius,
+            2 * radius);
       }
     }
 
-    if (maxProb > 0) {
-      double maxRadius = (Math.min(sqrWdth, sqrHght) - 4) / 2;
-
-      // A cell's dot is sized by its absolute probability, not its probability relative
-      // to the best guess. That way a uniform belief draws a small dot in every open
-      // cell (visibly "no idea"), and a confident filter draws one big dot. Scaling by
-      // the relative probability alone would make a uniform belief look certain,
-      // because every cell would tie for "most likely".
-      for (int y = 0; y < mundo.height; y++) {
-        for (int x = 0; x < mundo.width; x++) {
-          if (probs[x][y] <= 0)
-            continue;
-
-          double rel = probs[x][y] / maxProb;
-          int alpha = (int) (70 + 185 * Math.sqrt(rel));
-          g.setColor(new Color(0, 0, 255, alpha));
-
-          int radius = (int) Math.round(maxRadius * Math.sqrt(probs[x][y]));
-          if (radius < 2)
-            radius = 2;
-
-          g.fillOval(
-              (int) (x * sqrWdth + sqrWdth / 2) + offset - radius,
-              (int) (y * sqrHght + sqrHght / 2) - radius,
-              2 * radius,
-              2 * radius);
+    // Ring the most likely cell so it is easy to spot at a glance
+    double best = 0.0;
+    int estX = 0,
+        estY = 0;
+    for (int y = 0; y < mundo.height; y++) {
+      for (int x = 0; x < mundo.width; x++) {
+        if (probs[x][y] > best) {
+          best = probs[x][y];
+          estX = x;
+          estY = y;
         }
       }
-
-      // Ring the most likely cell so it is easy to spot at a glance
-      int estX = 0,
-          estY = 0;
-      maxProb = 0.0;
-      for (int y = 0; y < mundo.height; y++) {
-        for (int x = 0; x < mundo.width; x++) {
-          if (probs[x][y] > maxProb) {
-            maxProb = probs[x][y];
-            estX = x;
-            estY = y;
-          }
-        }
-      }
-      g.setColor(Color.blue);
-      g.drawOval(
-          (int) (estX * sqrWdth) + offset + 1,
-          (int) (estY * sqrHght) + 1,
-          (int) (sqrWdth - 1.4),
-          (int) (sqrHght - 1.4));
     }
+    g.setColor(Color.blue);
+    g.drawOval(
+        (int) (estX * sqrWdth) + offset + 1,
+        (int) (estY * sqrHght) + 1,
+        (int) (sqrWdth - 1.4),
+        (int) (sqrHght - 1.4));
   }
 
   public void keyPressed(KeyEvent e) {
@@ -796,7 +795,7 @@ public class theRobot extends JFrame {
     Map<String, Double> rewards = new HashMap<>();
 
     // Add or update key-value pairs
-    rewards.put("empty", -1.0);
+    rewards.put("empty", -0.2);
     rewards.put("stairway", -10.0);
     rewards.put("goal", 10.0);
 
