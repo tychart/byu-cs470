@@ -386,7 +386,7 @@ public class theRobot extends JFrame {
   public static final int GOAL = 3;
 
   public static final double REWARD_EMPTY = -0.2;
-  public static final double REWARD_STAIRWAY = -100000.0;
+  public static final double REWARD_STAIRWAY = -10.0;
   public static final double REWARD_GOAL = 10.0;
 
   int stepCount = 0;
@@ -823,9 +823,10 @@ public class theRobot extends JFrame {
   int automaticAction2() {
     int outAction = -1;
 
-    int homeingActionLimit = 5;
+    int homeingActionLimit = 20;
+    double maxBeliefThreshold = 0.2;
 
-    if (this.stepCount < homeingActionLimit && maxBelief() < 0.6) {
+    if (this.stepCount < homeingActionLimit && maxBelief() < maxBeliefThreshold) {
       if (this.lastAction == SOUTH) {
         outAction = EAST;
       } else {
