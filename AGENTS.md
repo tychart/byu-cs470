@@ -33,6 +33,25 @@ uv run ty check              # type check the whole project
 All three must pass with zero diagnostics. `ty` exits non-zero on any
 diagnostic, so wire it into CI/pre-commit exactly like the other two.
 
+## Benchmarking
+
+`run_benchmark.py` (repo root) runs one command over a matrix of flag sets and
+prints a `tabulate` table of win/loss rates and numeric metrics. The config
+string is passed **verbatim** (`{config}` in the `command`), so new flags need no
+harness change; each project supplies a `benchmark.conf` describing how to launch
+it and how to parse its output.
+
+```bash
+uv run python run_benchmark.py --games 100        # bayes_filter/benchmark.conf
+uv run python run_benchmark.py bayes_filter --config "-w mundo_maze -k -m 1.0 -s 1.0 -a -d 0"
+```
+
+Before adding a profile, editing the harness, or debugging a benchmark that
+reports 0 runs/timeouts/busy ports, read
+[.agents/skills/benchmark/SKILL.md](.agents/skills/benchmark/SKILL.md) — it covers
+the profile schema, metric semantics, porting steps, and the invariants to keep
+(no flag parsing in the harness, process-group kills, raw-fd streaming).
+
 ## Configuration
 
 All config lives in `pyproject.toml`; there is no `ruff.toml`, `ty.toml`,

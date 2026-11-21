@@ -1,9 +1,21 @@
 #!/usr/bin/env sh
 set -e
 
-# Always run from the directory containing this script,
-# so relative paths work no matter where you invoke it from.
-cd "$(dirname "$0")"
+# Always run from the directory containing this script, so the maps under Mundos/ and
+# the compiled classes resolve no matter where the script is invoked from.
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd) || {
+    echo "Error: cannot enter the directory containing $0" >&2
+    exit 2
+}
+cd "$SCRIPT_DIR"
+
+# The JVMs bind a fixed port, so a leftover game makes the new server fail to start
+# (and the robot then hangs waiting for it). Fail fast with an actionable message.
+if command -v ss >/dev/null 2>&1 && ss -ltn 2>/dev/null | grep -q ':3333 '; then
+    echo "Error: port 3333 is already in use (a previous game may still be running)." >&2
+    echo "Stop it, or find the process with: ss -ltnp | grep 3333" >&2
+    exit 2
+fi
 
 # Defaults (all 1.0 / 0 means "ideal" debugging conditions).
 WORLD=mundo_maze  # map under Mundos/ (the .txt suffix is optional)
@@ -86,6 +98,9 @@ esac
 
 if [ ! -f "$MAP_FILE" ]; then
     echo "Error: map not found: $MAP_FILE" >&2
+    case "$WORLD" in
+        */*) echo "Hint: pass a bare map name; maps are always read from Mundos/." >&2 ;;
+    esac
     echo "Available maps:" >&2
     list_maps >&2
     exit 2

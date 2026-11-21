@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.lang.*;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -119,12 +121,23 @@ public class BayesWorld extends JFrame {
         // the drawing area is exactly width x height and nothing is clipped
         setTitle("BayesWorld");
         pack();
+        placeWindow(0); // this window sits on top; the robot's window stacks below it
         setVisible(true);
         
         getConnection(3333, fnombre, _known);
         survive();
     }
-    
+
+    // Stack this window above or below its partner, flush with the left edge of the
+    // usable screen, so both are visible at once. stackIndex 0 = upper, 1 = lower.
+    private void placeWindow(int stackIndex) {
+        Rectangle screen = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                .getMaximumWindowBounds();
+        int gap = 8;
+        int h = getHeight();
+        setLocation(screen.x, screen.y + stackIndex * (h + gap));
+    }
+
     private void getConnection(int port, String fnombre, String _known) {
         System.out.println("Set up the connection:" + port);
         

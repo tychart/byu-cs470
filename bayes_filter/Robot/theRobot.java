@@ -2,6 +2,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.awt.event.*;
 import java.io.*;
 import java.lang.*;
@@ -454,10 +456,21 @@ public class theRobot extends JFrame {
     // the drawing area is exactly width x height and nothing is clipped
     setTitle("Probability and Value Maps");
     pack();
+    placeWindow(1); // stacked below the BayesWorld window
     setVisible(true);
 
     doStuff(); // Function to have the robot move about its world until it gets to its goal or
                // falls in a stairwell
+  }
+
+  // Stack this window below its partner, flush with the left edge of the usable screen,
+  // so both are visible at once. stackIndex 0 = upper, 1 = lower.
+  private void placeWindow(int stackIndex) {
+    Rectangle screen = GraphicsEnvironment.getLocalGraphicsEnvironment()
+        .getMaximumWindowBounds();
+    int gap = 8;
+    int h = getHeight();
+    setLocation(screen.x, screen.y + stackIndex * (h + gap));
   }
 
   // this function establishes a connection with the server and learns
